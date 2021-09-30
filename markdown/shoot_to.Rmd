@@ -1,0 +1,43 @@
+---
+title: "Stand Up Fight Back"
+subtitle: "How Police Killings Can Mobilize Local Communities"
+thanks: Prepared for the 2021 Annual Meeting of the American Sociological Association. Draft---please do not cite without permission.
+author:
+- Kevin Morris^[PhD Student, Department of Sociology, CUNY Graduate Center (kmorris@gradcenter.cuny.edu)]
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  bookdown::pdf_document2:
+    toc: no
+    fig_caption: yes
+    latex_engine: xelatex
+    keep_tex: true
+
+link-citations: yes
+fontsize: 12pt
+header-includes:
+    - \usepackage{rotating}
+    - \usepackage{setspace}
+abstract: |
+  TKTKTKTK
+---
+\pagenumbering{gobble}
+\pagebreak
+\doublespacing
+```{r setup, echo = F, message = F, warning = F}
+knitr::opts_knit$set(root.dir = "..", dev = "cairo_pdf")
+library(systemfit)
+library(kevostools)
+library(AER)
+library(sandwich)
+library(lmtest)
+library(scales)
+library(ggpubr)
+library(tidyverse)
+library(extrafont)
+library(kableExtra)
+library(data.table)
+library(stargazer)
+loadfonts()
+```
+\pagenumbering{arabic}
+

@@ -7,28 +7,28 @@
 # # download.file("https://mappingpoliceviolence.org/s/MPVDatasetDownload.xlsx",
 # #               "raw_data/MPVDatasetDownload.xlsx")
 # 
-# shootings_wapo <- fread("raw_data/wapo_shootings.csv") %>% 
-#   select(id, date, latitude, longitude, age, race) %>% 
+# shootings_wapo <- fread("raw_data/wapo_shootings.csv") %>%
+#   select(id, date, latitude, longitude, age, race) %>%
 #   mutate(date = as.Date(date))
 # shootings_mapping <- read_xlsx("raw_data/MPVDatasetDownload.xlsx")
 # colnames(shootings_mapping) <- clean_names(shootings_mapping)
-# shootings_mapping <- shootings_mapping %>% 
+# shootings_mapping <- shootings_mapping %>%
 #   select(date = date_of_incident__month_day_year_,
 #          street = street_address_of_incident, age = victim_s_age, race = victim_s_race,
 #          city, state, zipcode,
-#          wapo_id__if_included_in_wapo_database_) %>% 
+#          wapo_id__if_included_in_wapo_database_) %>%
 #   mutate(date = as.Date(date),
 #          age = as.integer(age))
 # 
 # full_set <- bind_rows(
 #   inner_join(shootings_wapo, select(shootings_mapping,
 #                                     id = wapo_id__if_included_in_wapo_database_,
-#                                     street, city, state, zipcode)) %>% 
+#                                     street, city, state, zipcode)) %>%
 #     mutate(type = "both"),
-#   filter(shootings_wapo, !(id %in% shootings_mapping$wapo_id__if_included_in_wapo_database_)) %>% 
+#   filter(shootings_wapo, !(id %in% shootings_mapping$wapo_id__if_included_in_wapo_database_)) %>%
 #     mutate(type = "wapo"),
 #   filter(shootings_mapping, is.na(wapo_id__if_included_in_wapo_database_),
-#          !(wapo_id__if_included_in_wapo_database_ %in% shootings_wapo$id)) %>% 
+#          !(wapo_id__if_included_in_wapo_database_ %in% shootings_wapo$id)) %>%
 #     mutate(type = "mapping")
 # )
 # 
@@ -40,7 +40,7 @@
 # 
 # for(i in c(1:nrow(to_geo))){
 #   te <- filter(to_geo, row_number() == i)
-#   
+# 
 #   print(i)
 #   es = httr::GET("https://geoservices.tamu.edu/Services/Geocode/WebService/GeocoderWebServiceHttpNonParsed_V04_01.aspx?",
 #            query = list(streetAddress= te$street,
@@ -52,22 +52,22 @@
 #                         version="4.01",
 #                         census = "true",
 #                         censusYear = "2010"))
-#   
+# 
 #   data = jsonlite::fromJSON(rawToChar(es$content))
-#   
+# 
 #   n <- cbind(data$InputAddress,
 #              data[["OutputGeocodes"]][["OutputGeocode"]],
-#              data[["OutputGeocodes"]][["CensusValues"]][[1]][["CensusValue1"]]) %>% 
+#              data[["OutputGeocodes"]][["CensusValues"]][[1]][["CensusValue1"]]) %>%
 #     select(latitude = Latitude,
 #            longitude = Longitude,
 #            score = MatchScore)
-#   
+# 
 #   hold <- rbind(hold, n)
 # }
 # 
 # full_set <- bind_rows(
 #   geos,
-#   cbind(select(to_geo, -latitude, -longitude), hold) %>% 
+#   cbind(select(to_geo, -latitude, -longitude), hold) %>%
 #     mutate_at(vars(latitude, longitude), as.double)
 # )
 # 
@@ -75,20 +75,22 @@
 ##########################
 full_set <- readRDS("temp/geocoded_shootings.rds") %>% 
   ungroup() %>% 
-  mutate(id2 = row_number())
+  mutate(id2 = row_number(),
+         score = ifelse(is.na(score), 100, as.numeric(score))) %>% 
+  filter(score > 95)
 ## turn protest locations into spatial data
 
 find_closest <- function(bg_data_f, centroids_f, d, type){
   d = as.Date(d)
   if(type == "pre"){
     sites <- filter(full_set,
-                    date >= d - months(6),
+                    date >= d - months(2),
                     date < d) %>% 
       mutate(id = row_number())
   }else{
     sites <- filter(full_set,
                     date >= d,
-                    date < d + months(6)) %>% 
+                    date < d + months(2)) %>% 
       mutate(id = row_number())
   }
   
@@ -110,8 +112,8 @@ find_closest <- function(bg_data_f, centroids_f, d, type){
 
 for(s in unique(filter(fips_codes, state_code <= 56)$state_code)){
   print(s)
-  if(!(file.exists(paste0("temp/bgs_", s, ".rds")))){
-    bgs <- block_groups(state = s, class = "sp")
+  # if(!(file.exists(paste0("temp/bgs_", s, ".rds")))){
+    bgs <- block_groups(state = s, class = "sp", year = 2017)
     
     centroids <- SpatialPoints(
       data.table(x = as.numeric(bgs@data$INTPTLON), y = as.numeric(bgs@data$INTPTLAT))
@@ -153,10 +155,39 @@ for(s in unique(filter(fips_codes, state_code <= 56)$state_code)){
     bg_data <- select(bg_data, GEOID, starts_with("dist_"), starts_with("date_"), starts_with("id_p"))
     
     saveRDS(bg_data, paste0("temp/bgs_", s, ".rds"))
-  }}
+# }
+}
 
 files <- list.files(path = "temp/", pattern = "^bgs_[0-9]", full.names = T)
 
 all_bgs <- rbindlist(lapply(files, readRDS))
 
 saveRDS(all_bgs, "temp/all_bgs_dist_shooting.rds")
+
+dists1 <- readRDS("temp/all_bgs_dist_shooting.rds") %>% 
+  select(GEOID, starts_with("dist_")) %>% 
+  pivot_longer(cols = c(starts_with("dist_")), names_to = "year", names_prefix = "dist_",
+               values_to = "dist") %>% 
+  separate(year, into = c("type", "year"), sep = "_") %>% 
+  pivot_wider(id_cols = c(GEOID, year), names_from = "type", values_from = "dist", names_prefix = "dist_") %>% 
+  mutate(year = paste0("20", year))
+
+dists2 <- readRDS("temp/all_bgs_dist_shooting.rds") %>% 
+  select(GEOID, starts_with("date_")) %>% 
+  pivot_longer(cols = c(starts_with("date_")), names_to = "year", names_prefix = "date_",
+               values_to = "dist") %>% 
+  separate(year, into = c("type", "year"), sep = "_") %>% 
+  pivot_wider(id_cols = c(GEOID, year), names_from = "type", values_from = "dist", names_prefix = "date_") %>% 
+  mutate(year = paste0("20", year))
+
+dists3 <- readRDS("temp/all_bgs_dist_shooting.rds") %>% 
+  select(GEOID, starts_with("id_")) %>% 
+  pivot_longer(cols = c(starts_with("id_")), names_to = "year", names_prefix = "id_",
+               values_to = "dist") %>% 
+  separate(year, into = c("type", "year"), sep = "_") %>% 
+  pivot_wider(id_cols = c(GEOID, year), names_from = "type", values_from = "dist", names_prefix = "id_") %>% 
+  mutate(year = paste0("20", year))
+
+dists <- full_join(dists1, full_join(dists2, dists3))
+
+saveRDS(dists, "temp/dists_long.rds")

@@ -3,6 +3,7 @@
 library(readxl)
 library(SearchTrees)
 library(gstat)
+library(rgeos)
 library(rdrobust)
 library(scales)
 library(stargazer)
