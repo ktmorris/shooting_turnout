@@ -19,6 +19,7 @@ library(AER)
 library(maptools)
 library(tigris)
 library(rgdal)
+library(modelsummary)
 library(spatialreg)
 library(sqldf)
 library(lubridate)
@@ -31,7 +32,7 @@ library(kevostools)
 ### want to keep from one script to the next
 
 save <- c("db", "cleanup", "theme_bc", "save", "weighted.ttest.ci")
-
+options("modelsummary_format_numeric_latex" = "plain")
 
 cleanup <- function(...){
   save2 <- c(save, ...)
