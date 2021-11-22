@@ -158,7 +158,7 @@ for(s in unique(filter(fips_codes, state_code <= 56)$state_code)){
 # }
 }
 
-files <- list.files(path = "temp/", pattern = "^bgs_[0-9]", full.names = T)
+files <- list.files(path = "temp/", pattern = "^bgs_[0-9][0-9].rds", full.names = T)
 
 all_bgs <- rbindlist(lapply(files, readRDS))
 

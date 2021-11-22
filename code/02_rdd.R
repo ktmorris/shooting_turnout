@@ -3,79 +3,83 @@
 #   print(s)
 #   if(!(file.exists(paste0("../regular_data/bg_turnout/", s, "_bg_to_14.rds")))){
 #   j <- bind_rows(
-#   l <-  readRDS(paste0("../fees_fines_to/temp/", s, "_to_14_block.rds")) %>% 
+#   l <-  readRDS(paste0("../fees_fines_to/temp/", s, "_to_14_block.rds")) %>%
 #       mutate(GEOID = paste0(s1, str_pad(Voters_FIPS, width = 3, side = "left", pad = "0"),
 #                             str_pad(Residence_Addresses_CensusTract, width = 6, side = "left", pad = "0"),
 #                             Residence_Addresses_CensusBlockGroup)),
-#     readRDS(paste0("../fees_fines_to/temp/cleaned_", s, "_2014.rds")) %>% 
+#     readRDS(paste0("../fees_fines_to/temp/cleaned_", s, "_2014.rds")) %>%
 #      mutate(GEOID = paste0(s1, str_pad(Voters_FIPS, width = 3, side = "left", pad = "0"),
 #                            str_pad(Residence_Addresses_CensusTract, width = 6, side = "left", pad = "0"),
-#                            Residence_Addresses_CensusBlockGroup)) %>% 
+#                            Residence_Addresses_CensusBlockGroup)) %>%
 #     select(-Voters_FIPS,
 #            -Residence_Addresses_CensusTract,
 #            -Residence_Addresses_CensusBlockGroup,
 #            -Residence_Addresses_CensusBlock)
 #   )
-#   
+# 
 #   if(s == "HI"){
 #     j <- rename(j, General_2014.11.04 = `General_2014-11-04`)
 #   }
-#   
-#   j <- j %>% 
-#     group_by(GEOID) %>% 
-#     summarize(ballots = sum(General_2014.11.04 == "Y")) %>% 
+# 
+#   j <- j %>%
+#     group_by(GEOID) %>%
+#     summarize(ballots = sum(General_2014.11.04 == "Y")) %>%
 #     mutate(year = "2014")
-#   
+# 
 #   saveRDS(j, paste0("../regular_data/bg_turnout/", s, "_bg_to_14.rds"))}
 #   else{
 #     readRDS(paste0("../regular_data/bg_turnout/", s, "_bg_to_14.rds"))
 #   }
 # }))
 # 
-# ballots_16 <- readRDS("../avr_turnout/temp/full_bg_turnout_16.rds") %>% 
-#   mutate(year = "2016") %>% 
+# files <- list.files("temp", pattern = "^16_ballots_by_bg", full.names = T)
+# 
+# ballots_16 <- rbindlist(lapply(files, readRDS)) %>%
+#   select(GEOID, ballots, new) %>%
+#   mutate(year = "2016",
+#          new = new / ballots)
+# 
+# ballots_18 <- readRDS("../avr_turnout/temp/full_bg_turnout_18.rds") %>%
+#   mutate(year = "2018") %>%
 #   select(-voter_count)
 # 
-# ballots_18 <- readRDS("../avr_turnout/temp/full_bg_turnout_18.rds") %>% 
-#   mutate(year = "2018") %>% 
-#   select(-voter_count)
+# files <- list.files("temp", pattern = "^ballots_by_bg", full.names = T)
 # 
-# files <- list.files("../blm_turnout/temp", pattern = "^ballots_by_bg", full.names = T)
-# 
-# ballots_20 <- rbindlist(lapply(files, readRDS)) %>% 
-#   select(GEOID, ballots) %>% 
-#   mutate(year = "2020")
+# ballots_20 <- rbindlist(lapply(files, readRDS)) %>%
+#   select(GEOID, ballots, new) %>%
+#   mutate(year = "2020",
+#          new = new / ballots)
 # 
 # ballots_20 <- left_join(ballots_20, rename(select(ballots_14, -year), ballots_14 = ballots))
 # ballots_20 <- left_join(ballots_20, rename(select(ballots_18, -year), ballots_18 = ballots))
-# ballots_20 <- left_join(ballots_20, rename(select(ballots_16, -year), ballots_16 = ballots))
+# ballots_20 <- left_join(ballots_20, rename(select(ballots_16, -year, -new), ballots_16 = ballots))
 # 
 # ballots <- bind_rows(ballots_14, ballots_16, ballots_18, ballots_20)
 # cleanup("ballots")
 # 
 # ########################### cvap
-# cvap14 <- fread("../regular_data/CVAP_2010-2014_ACS_csv_files/BlockGr.csv") %>% 
-#   filter(lntitle == "Total") %>% 
+# cvap14 <- fread("../regular_data/CVAP_2010-2014_ACS_csv_files/BlockGr.csv") %>%
+#   filter(lntitle == "Total") %>%
 #   mutate(GEOID = substring(geoid, 8),
-#          year = "2014") %>% 
+#          year = "2014") %>%
 #   select(GEOID, cvap = CVAP_EST, year)
 # 
-# cvap16 <- fread("../regular_data/CVAP_2012-2016_ACS_csv_files/BlockGr.csv") %>% 
-#   filter(lntitle == "Total") %>% 
+# cvap16 <- fread("../regular_data/CVAP_2012-2016_ACS_csv_files/BlockGr.csv") %>%
+#   filter(lntitle == "Total") %>%
 #   mutate(GEOID = substring(geoid, 8),
-#          year = "2016") %>% 
+#          year = "2016") %>%
 #   select(GEOID, cvap = CVAP_EST, year)
 # 
-# cvap18 <- fread("../regular_data/CVAP_2014-2018_ACS_csv_files/BlockGr.csv") %>% 
-#   filter(lntitle == "Total") %>% 
+# cvap18 <- fread("../regular_data/CVAP_2014-2018_ACS_csv_files/BlockGr.csv") %>%
+#   filter(lntitle == "Total") %>%
 #   mutate(GEOID = substring(geoid, 8),
-#          year = "2018") %>% 
+#          year = "2018") %>%
 #   select(GEOID, year, cvap = cvap_est)
 # 
-# cvap20 <- fread("../regular_data/CVAP_2015-2019_ACS_csv_files/BlockGr.csv") %>% 
-#   filter(lntitle == "Total") %>% 
+# cvap20 <- fread("../regular_data/CVAP_2015-2019_ACS_csv_files/BlockGr.csv") %>%
+#   filter(lntitle == "Total") %>%
 #   mutate(GEOID = substring(geoid, 8),
-#          year = "2020") %>% 
+#          year = "2020") %>%
 #   select(GEOID, year, cvap = cvap_est)
 # 
 # cvap20 <- left_join(cvap20, rename(select(cvap18, -year), cvap_18 = cvap))
@@ -87,23 +91,23 @@
 # ballots <- inner_join(ballots, cvap)
 # cleanup("ballots")
 # ########################### census
-# c14 <- readRDS("../regular_data/census_bgs_14.rds") %>% 
-#   mutate(year = "2014") %>% 
+# c14 <- readRDS("../regular_data/census_bgs_14.rds") %>%
+#   mutate(year = "2014") %>%
 #   select(GEOID, year, latino, asian, nh_white, nh_black, median_income, median_age,
 #          pop_dens)
 # 
-# c16 <- readRDS("../regular_data/census_bgs_16.rds") %>% 
-#   mutate(year = "2016") %>% 
+# c16 <- readRDS("../regular_data/census_bgs_16.rds") %>%
+#   mutate(year = "2016") %>%
 #   select(GEOID, year, latino, asian, nh_white, nh_black, median_income, median_age,
 #          pop_dens)
 # 
-# c18 <- readRDS("../regular_data/census_bgs_18.rds") %>% 
-#   mutate(year = "2018") %>% 
+# c18 <- readRDS("../regular_data/census_bgs_18.rds") %>%
+#   mutate(year = "2018") %>%
 #   select(GEOID, year, latino, asian, nh_white, nh_black, median_income, median_age,
 #          pop_dens)
 # 
-# c20 <- readRDS("../regular_data/census_bgs_19.rds") %>% 
-#   mutate(year = "2020") %>% 
+# c20 <- readRDS("../regular_data/census_bgs_19.rds") %>%
+#   mutate(year = "2020") %>%
 #   select(GEOID, year, latino, asian, nh_white, nh_black, median_income, median_age,
 #          pop_dens)
 # census <- bind_rows(c14, c16, c18, c20)
@@ -112,15 +116,15 @@
 # 
 # saveRDS(filter(ballots, year == 2020), "temp/to_ey.rds")
 # cleanup("ballots")
-# #################### 
+# ####################
 # dists <- readRDS("temp/dists_long.rds")
 # 
-# dists <- inner_join(dists, ballots) %>% 
+# dists <- inner_join(dists, ballots) %>%
 #   mutate(turnout = ballots / cvap,
 #          turnout_18 = ballots_18 / cvap_18,
 #          turnout_16 = ballots_16 / cvap_16,
 #          turnout_14 = ballots_14 / cvap_14,
-#          year = factor(year)) %>% 
+#          year = factor(year)) %>%
 #   mutate_at(vars(starts_with("turnout")), ~ ifelse(. > 1, 1, .))
 # 
 # d1 <- filter(dists, year != "2016")
@@ -136,14 +140,16 @@ dists <- readRDS("temp/shooting_demos.rds") %>%
   mutate(turnout_pre = ifelse(year == "2016", turnout_14, turnout_18))
 
 out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
+  t2 <- 0
   full_treat <- bind_rows(
     dists %>% 
       filter(year == "2020",
              dist_pre <= threshold,
+             dist_pre > t2,
              dist_post > threshold) %>% 
       select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
              median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_16, turnout_18, turnout_14, turnout_pre) %>% 
+             turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
       mutate(treated = T,
              d2 = as.integer(date - as.Date("2020-11-03"))),
     dists %>% 
@@ -152,16 +158,17 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
              dist_post <= threshold) %>% 
       select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
              median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_16, turnout_18, turnout_14, turnout_pre) %>% 
+             turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
       mutate(treated = F,
              d2 = as.integer(date - as.Date("2020-11-03"))),
     dists %>% 
       filter(year == "2016",
              dist_pre <= threshold,
+             dist_pre > t2,
              dist_post > threshold) %>% 
       select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
              median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_16, turnout_18, turnout_14, turnout_pre) %>% 
+             turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
       mutate(treated = T,
              d2 = as.integer(date - as.Date("2016-11-08"))),
     dists %>% 
@@ -170,7 +177,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
              dist_post <= threshold) %>% 
       select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
              median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_16, turnout_18, turnout_14, turnout_pre) %>% 
+             turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
       mutate(treated = F,
              d2 = as.integer(date - as.Date("2016-11-08")))
   ) %>% 
@@ -210,7 +217,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
       mutate(weight = mb$w)
   )
   
-  full_treat <- bind_rows(d16)
+  full_treat <- bind_rows(d16, d20)
   ########################################
   
   l <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
@@ -244,7 +251,7 @@ different_dists <- ggplot(out,
   labs(y = "Estimated Effect Size", x = "Radius Around Shooting (Miles)")
 different_dists
 
-saveRDS(different_dists, "temp/different_dists_primary_16.rds")
+saveRDS(different_dists, "temp/different_dists_primary.rds")
 ###########################
 threshold <- 0.5
 full_treat <- bind_rows(
