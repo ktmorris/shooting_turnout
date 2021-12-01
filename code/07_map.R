@@ -20,9 +20,7 @@ full_set <- readRDS("temp/geocoded_shootings.rds") %>%
   filter(score > 95)
 
 pre_post <- filter(full_set,
-                   (date >= as.Date("2016-11-08") - months(2) &
-                      date < as.Date("2016-11-08") + months(2)) |
-                     (date >= as.Date("2020-11-03") - months(2) &
+                   (date >= as.Date("2020-11-03") - months(2) &
                         date < as.Date("2020-11-03") + months(2))) %>% 
   mutate(year = floor(year(date) / 2) * 2,
          pre = date < "2016-11-08" | (year == 2020 & date < "2020-11-03"))
@@ -61,7 +59,7 @@ t <- ggplot() +
   labs(fill = "Killing Timing", x = NULL, y = NULL)
 
 t +
-  ggtitle("Police Killing within 2 Months of Election, 2016 & 2020")
+  ggtitle("Police Killing within 2 Months of 2020 Election")
 saveRDS(t, "temp/map.rds")
 
 ggsave("temp/map.png")
