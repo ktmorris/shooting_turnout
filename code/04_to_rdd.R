@@ -245,7 +245,7 @@ different_dists <- ggplot(out,
        aes(x = p, y = coef, ymin = l, ymax = u)) +
   facet_grid(~estimate) +
   geom_point() +
-  geom_errorbar() + 
+  geom_errorbar(width = 0) + 
   theme_bc(base_family = "LM Roman 10") +
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(y = "Estimated Effect Size", x = "Radius Around Shooting (Miles)")
@@ -353,12 +353,47 @@ dd <- ggplot(out,
        aes(x = p, y = coef, ymin = l, ymax = u)) +
   facet_grid(~estimate) +
   geom_point() +
-  geom_errorbar() +
+  geom_errorbar(width = 0) +
   theme_bc(base_family = "LM Roman 10") +
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(y = "Estimated Effect Size", x = "Polynomial")
 dd
 saveRDS(dd, "temp/diff_polys_primary.rds")
+########################################
+
+out <- rbindlist(lapply(c(-7:7), function(x){
+  l <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = x, cluster = full_treat$id,
+                weights = full_treat$weight,
+                covs = select(full_treat,
+                              nh_black, latino, nh_white, asian, median_income, median_age,
+                              pop_dens, turnout_pre))
+  
+  f <- tibble(coef = l$coef,
+              se = l$se,
+              pv = l$pv,
+              p = x)
+}))
+
+out$l <- out$coef - 1.96*out$se
+out$u <- out$coef + 1.96*out$se
+out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
+out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
+out <- mutate_at(out, vars(coef, l, u), ~. * -1)
+
+out$z <- out$p == 0
+
+dd <- ggplot(out,
+             aes(x = p, y = coef, ymin = l, ymax = u)) +
+  facet_grid(~estimate) +
+  geom_errorbar(width = 0) +
+  geom_point(aes(color = z)) +
+  theme_bc(base_family = "LM Roman 10") +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(y = "Estimated Effect Size", x = "Polynomial") +
+  scale_color_manual(values = c("black", "red")) +
+  theme(legend.position = "none")
+dd
+saveRDS(dd, "temp/placebos.rds")
 ###########################
 j <- rdplot(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0,
        weights = full_treat$weight,
