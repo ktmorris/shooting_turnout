@@ -9,8 +9,10 @@ pings  <- SpatialPoints(ps[,c('long',
                                 'lat')], proj4string = pd@proj4string)
 ps$precinct <- over(pings, pd)$SHORTLABEL
 
-ps <- filter(ps,
-             substring(responseDate, 1, 4) == "2021")
+ps <- ps %>% 
+  mutate(date = as.Date(substring(responseDate, 1, 10), "%Y/%m/%d")) %>% 
+  filter(year(date) == 2021,
+         date < "2021-11-02")
 
 ps <- ps %>% 
   mutate(p = trimws(gsub("W|P|-", "", precinct)))
