@@ -139,6 +139,23 @@
 dists <- readRDS("temp/shooting_demos.rds") %>% 
   mutate(turnout_pre = ifelse(year == "2016", turnout_14, turnout_18))
 
+dists <- left_join(dists, readRDS("temp/geocoded_shootings.rds") %>% 
+                     ungroup() %>% 
+                     mutate(id = row_number(),
+                            score = ifelse(is.na(score), 100, as.numeric(score))) %>% 
+                     filter(score > 95) %>% 
+                     select(id_pre = id, race_pre = race))
+
+dists <- left_join(dists, readRDS("temp/geocoded_shootings.rds") %>% 
+                     ungroup() %>% 
+                     mutate(id = row_number(),
+                            score = ifelse(is.na(score), 100, as.numeric(score))) %>% 
+                     filter(score > 95) %>% 
+                     select(id_post = id, race_post = race)) %>% 
+  mutate(across(starts_with("race"), ~substring(., 1, 1)),
+         across(starts_with("race"), ~ifelse(. == "", "U",
+                                            ifelse(. %in% c("A", "N", "P"), "O", .))))
+
 out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   t2 <- 0
   full_treat <- bind_rows(
@@ -248,7 +265,7 @@ different_dists <- ggplot(out,
   geom_errorbar(width = 0) + 
   theme_bc(base_family = "LM Roman 10") +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "Estimated Effect Size", x = "Radius Around Shooting (Miles)")
+  labs(y = "Local Average Treatment Effect", x = "Radius Around Shooting (Miles)")
 different_dists
 
 saveRDS(different_dists, "temp/different_dists_primary.rds")
@@ -261,7 +278,7 @@ full_treat <- bind_rows(
            dist_post > threshold) %>%
     select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout, cvap,
            median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-           turnout_16, turnout_18, turnout_pre) %>%
+           turnout_16, turnout_18, turnout_pre, race = race_pre) %>%
     mutate(treated = T,
            d2 = as.integer(date - as.Date("2020-11-03"))),
   dists %>%
@@ -270,7 +287,7 @@ full_treat <- bind_rows(
            dist_post <= threshold) %>%
     select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
            median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-           turnout_16, turnout_18, turnout_pre) %>%
+           turnout_16, turnout_18, turnout_pre, race = race_post) %>%
     mutate(treated = F,
            d2 = as.integer(date - as.Date("2020-11-03"))),
   dists %>%
@@ -279,7 +296,7 @@ full_treat <- bind_rows(
            dist_post > threshold) %>%
     select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
            median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-           turnout_16, turnout_18, turnout_pre) %>%
+           turnout_16, turnout_18, turnout_pre, race = race_pre) %>%
     mutate(treated = T,
            d2 = as.integer(date - as.Date("2016-11-08"))),
   dists %>%
@@ -288,7 +305,7 @@ full_treat <- bind_rows(
            dist_post <= threshold) %>%
     select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
            median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-           turnout_16, turnout_18, turnout_pre) %>%
+           turnout_16, turnout_18, turnout_pre, race = race_post) %>%
     mutate(treated = F,
            d2 = as.integer(date - as.Date("2016-11-08")))
 ) %>%
@@ -389,28 +406,23 @@ dd <- ggplot(out,
   geom_point(aes(color = z)) +
   theme_bc(base_family = "LM Roman 10") +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "Estimated Effect Size", x = "Polynomial") +
+  labs(y = "Estimated Effect Size", x = "Cut-Point") +
   scale_color_manual(values = c("black", "red")) +
   theme(legend.position = "none")
 dd
 saveRDS(dd, "temp/placebos.rds")
 ###########################
-j <- rdplot(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0,
-       weights = full_treat$weight,
-       covs = select(full_treat,
-                     nh_black, latino, nh_white, asian, median_income, median_age,
-                     pop_dens, turnout_pre))[["rdplot"]]
+j <- rdplot(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0)[["rdplot"]]
 j[["labels"]] <- j[["labels"]][-1]
 j <- j +
   theme_bc(base_family = "LM Roman 10") +
   labs(x = "Days Between Police Killing and Election",
-       y = "Turnout",
-       caption = "Notes: Post-election units are balanced using an entropic process to mirror pre-election units.
-Covariates for entropy balancing and RDD include: % Black, % white, % Asian, % Latinx, median income,
-median age, population density, turnout in previous midterm election.") +
+       y = "Turnout") +
   scale_y_continuous(labels = percent) +
   scale_x_continuous(breaks = c(-60, -30, 0, 30, 60),
-                     labels = c("60 Days\nbefore Election", "30", "Election Day", "30 Days\nAfter Election", "60"))
+                     labels = c("Killing Occurs\n60 Days\nBefore Election",
+                                "30", "Killing Occurs on\nElection Day",
+                                "30", "Killing Occurs\n60 Days\nAfter Election"))
 j
 
 saveRDS(j, "temp/rd_plot.rds")
@@ -418,15 +430,19 @@ saveRDS(j, "temp/rd_plot.rds")
 
 demos <- full_treat %>% 
   group_by(year, treated) %>% 
-  summarize_at(vars(nh_black, latino, nh_white, asian, median_income, median_age,
-                    pop_dens, turnout_pre), ~ weighted.mean(., weight)) %>% 
+  summarize(across(c("nh_black", "latino", "nh_white", "asian", "median_income", "median_age",
+                    "pop_dens", "turnout_pre"), ~ weighted.mean(., weight)),
+            n = n_distinct(GEOID),
+            n_shooting = n_distinct(id)) %>% 
   mutate(treated = ifelse(treated, "Treated", "Weighted Controls"))
 
 demos2 <- full_treat %>% 
   filter(!treated) %>%
   group_by(year) %>% 
-  summarize_at(vars(nh_black, latino, nh_white, asian, median_income, median_age,
-                    pop_dens, turnout_pre), mean) %>% 
+  summarize(across(c("nh_black", "latino", "nh_white", "asian", "median_income", "median_age",
+                     "pop_dens", "turnout_pre"), mean),
+            n = n_distinct(GEOID),
+            n_shooting = n_distinct(id)) %>% 
   mutate(treated = "Unweighted Controls")
 
 demos <- bind_rows(demos, demos2)
@@ -440,13 +456,15 @@ f <- bind_rows(readRDS("temp/to_ey.rds") %>%
 
 f <- filter(f, !(GEOID %in% full_treat$GEOID)) %>% 
   select(nh_black, latino, nh_white, asian, median_income, median_age,
-         pop_dens, turnout_pre, year)
+         pop_dens, turnout_pre, year, GEOID)
 
 f <- f[complete.cases(f), ] %>% 
   filter(is.finite(turnout_pre)) %>% 
   group_by(year) %>% 
-  summarize_at(vars(nh_black, latino, nh_white, asian, median_income, median_age,
-                    pop_dens, turnout_pre), mean, na.rm = T) %>% 
+  summarize(across(c("nh_black", "latino", "nh_white", "asian", "median_income", "median_age",
+                     "pop_dens", "turnout_pre"), mean),
+            n = n_distinct(GEOID),
+            n_shooting = 0) %>% 
   mutate(treated = "Not in Dataset")
 
 
@@ -455,7 +473,7 @@ demos <- bind_rows(demos, f)
 
 demos <- pivot_longer(demos, cols = c("nh_black", "latino", "nh_white",
                                   "asian", "median_income", "median_age",
-                                  "pop_dens", "turnout_pre"))
+                                  "pop_dens", "turnout_pre", "n", "n_shooting"))
 
 demos <- pivot_wider(demos, id_cols = c("year", "name"), names_from = "treated", values_from = "value")
 
@@ -477,7 +495,8 @@ demos <- demos %>%
             ~ ifelse(name == "Median Age", round(as.numeric(.), 1), .)) %>% 
   mutate_at(vars(`Not in Dataset`,
                  `Treated`, `Unweighted Controls`, `Weighted Controls`),
-            ~ ifelse(name == "Population Density", comma(as.numeric(.), accuracy = 1), .)) %>% 
+            ~ ifelse(name %in% c("Population Density", "Number of Block Groups",
+                                 "Number of Killings"), comma(as.numeric(.), accuracy = 1), .)) %>% 
   mutate_at(vars(`Not in Dataset`,
                  `Treated`, `Unweighted Controls`, `Weighted Controls`),
             ~ ifelse(substring(name, 1, 1) == "%" |
