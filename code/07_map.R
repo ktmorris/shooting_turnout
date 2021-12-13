@@ -45,8 +45,8 @@ pre_post$pre <- factor(pre_post$pre, levels = c("Before Election", "After Electi
 t <- ggplot() +
   geom_path(data = filter(state_map,
                           long > -130), mapping = aes(x = long, y = lat, group = group)) +
-  geom_point(aes(x = longitude, y = latitude, fill = pre), color = "black", data = pre_post,
-             shape = 21, alpha = 0.5) +
+  geom_point(aes(x = longitude, y = latitude, fill = pre, shape = pre), color = "black", data = pre_post,
+             alpha = 0.5) +
   coord_map() +
   theme_bc(base_family = "LM Roman 10") +
   theme(axis.ticks = element_blank(),
@@ -55,8 +55,10 @@ t <- ggplot() +
         panel.border = element_blank(),
         legend.position = "bottom",
         panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-  scale_fill_manual(values = c("blue", "red")) +
-  labs(fill = "Killing Timing", x = NULL, y = NULL)
+  scale_fill_manual(values = c("black", "red")) +
+  scale_shape_manual(values = c(21, 24)) +
+  labs(fill = "Killing Timing", x = NULL, y = NULL,
+       shape = "Killing Timing")
 
 t +
   ggtitle("Police Killing within 2 Months of 2020 Election")
