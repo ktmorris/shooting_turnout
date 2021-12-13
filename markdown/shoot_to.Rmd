@@ -43,122 +43,61 @@ loadfonts()
 ```
 \pagenumbering{arabic}
 
-# Data {-}
+```{r map, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("./temp/map.rds"))
+```
 
-* Combine the WaPo dataset (https://www.washingtonpost.com/graphics/investigations/police-shootings-database/) with the Mapping Police Violence data (https://mappingpoliceviolence.org/).
+```{r did-length, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("./temp/did_length.rds"))
+```
 
-* National (geocoded) voter files following each of the 2014, 2016, 2018, and 2020 elections from L2 Political. We use the voter file to calculate the number of ballots cast in each block group; we divide this number by 5-year CVAP estimates to construct turnout
+```{r did-week, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("./temp/did_week.rds"))
+```
 
-* Precinct-level shapefiles and results data from Mike McDonald (https://dataverse.harvard.edu/dataverse/electionscience). We've got 42 states as of Oct 4
 
-* Measure the distance between each block group / precinct and the closest police killing in the 2 months before and after each election
+```{r rd-plot, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("./temp/rd_plot.rds"))
+```
 
-# Empirical Setup {-}
+```{r dists, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/different_dists_primary.rds"))
+```
 
-We use a regression discontinuity in time to test whether block groups within a certain radius of a police killing immediately before an election turnout and vote at different rates than those with a killing immediately following the election.
 
-Specifically, we retain block groups whose centroids are within 0.5 miles (in our primary model) of a killing before *or* (but not *and*) after the election. In other words, block groups who were close to a killing before and after the election are excluded.
+```{r nhood, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/plurality_nhood.rds"))
+```
 
-Same deal with Biden's voteshare by precinct using the precinct data.
 
-Regression discontinuity assumes that there's no difference between units on either side of the cutoff; no reason to think that violation is violated here. But, block groups close to a killing after the election do look a little different. Thus, we use entropy balancing to weight the block groups with a post-election killing so they look the same as the pre-election block groups.
+```{r victim, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/victim_race.rds"))
+```
 
-Across the board, we're using the `rdrobust` package that implements an automated bandwidth selection procedure and allows for robust and biased-corrected estimates standard errors [@Calonico2014]. This follows the advice of a working paper tearing apart like every RDD in *APSR*, *AJPS*, and *JOP* from the past few years [@Stommes2021].
+```{r minn-scatter, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/minn_scatter.rds"))
+```
 
-# Early Results {-}
-
-```{r map-chunk, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-p2 <- readRDS("./temp/map.rds")
-print(p2)
+```{r paneled-race-effects, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/all_plots.rds"))
 ```
 
 \begin{singlespace}
+
+ 
 ```{r balance-tab-full, echo = F}
+
 t <- readRDS("temp/demo_table_half_mile.rds") %>% 
   select(-Year)
 colnames(t)[1] <- ""
-j <- knitr::kable(t, booktabs = T, caption = "(\\#tab:full-bal) Demographics of Block Groups with Police Killings", linesep = "") %>% 
+j <- knitr::kable(t, booktabs = T, caption = "(\\#tab:full-bal) Demographics of Block Groups with Police Killings", linesep = "") %>%
   kable_styling(latex_options = c("HOLD_position")) %>% 
-  pack_rows("2016", 1, 8) %>%
-  pack_rows("2020", 9, 16) %>% 
+  pack_rows("2016", 1, 10) %>%
+  pack_rows("2020", 11, 20) %>% 
   column_spec(2:5, width = "1in")
+ 
 j
-```
+
+``` 
+ 
 \end{singlespace}
-
-Clearly, police killings happen A) in less white, more Black areas, B) in lower-income and denser areas, and C) places with lower turnout in 2014 and 2018.
-
-Primary RD plot using a 0.5-mile radius around the killings. This uses entropy balancing *and* covariates.
-
-```{r rd1-chunk, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}RDD Plot, EB + Covariates, 2016 and 2020", fig.pos = "H", fig.align = "center"}
-p2 <- readRDS("temp/rd_plot.rds")
-print(p2)
-```
-
-Now no entropy balancing, only covariates:
-
-```{r rd2-chunk, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}RDD Plot, Covariates, 2016 and 2020", fig.pos = "H", fig.align = "center"}
-p2 <- readRDS("temp/rd_plot_noeb.rds")
-print(p2)
-```
-
-Now no processing at all---straight RD.
-
-```{r rd3-chunk, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}RDD Plot, Unprocessed, 2016 and 2020", fig.pos = "H", fig.align = "center"}
-p2 <- readRDS("temp/rd_plot_bla.rds")
-print(p2)
-```
-
-All these results also hold when the dependent variable is change in turnout from previous midterm election, rather than straight turnout.
-
-There's also some conversation in the literature about what local polynomial should be around the cutpoint. We're robust to different polynomials (the charts above all use a polynomial of 1):
-
-```{r polys-chunk, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Estimated Effect Size, EB + Covariates, 2016 and 2020", fig.pos = "H", fig.align = "center"}
-p2 <- readRDS("temp/diff_polys_primary.rds")
-print(p2)
-```
-
-So that's everything with a 0.5 mile radius for turnout. Of course, we should see that any effect decays as we extend the distance between the killing and the killing. That's exactly what we do see:
-
-```{r dists-chunk, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Estimated Effect Size, EB + Covariates, 2016 and 2020", fig.pos = "H", fig.align = "center"}
-p2 <- readRDS("temp/different_dists_primary.rds")
-print(p2)
-```
-
-As we loosen the geographical proximity, we get smaller---and eventually nonsignificant---effects. These follow a nice trend, and are robust regardless of what standard errors / adjustment we use.
-
-Somewhat surprisingly, these effects are driven largely by 2016. While the overall *shape* is similar---very close block groups have a positive effect that decays---they never get nonsignificant in 2016.
-
-Here's the 2016 plot:
-
-```{r dists-chunk16, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Estimated Effect Size, EB + Covariates, 2016 Only", fig.pos = "H", fig.align = "center"}
-p2 <- readRDS("temp/different_dists_primary_16.rds")
-print(p2)
-```
-
-And for 2020:
-
-```{r dists-chunk20, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Estimated Effect Size, EB + Covariates, 2020 Only", fig.pos = "H", fig.align = "center"}
-p2 <- readRDS("temp/different_dists_primary_20.rds")
-print(p2)
-```
-
-I haven't really looked to see if demos of the person killed / demos of the neighborhood moderate the treatment effect. Doing that is tricky in an RDD, and divvying up the observations into Black / non-Black neighborhoods, etc, starts to kill statistical power pretty quickly. So some more digging on that front needs to happen.
-
-# Vote Share {-}
-
-Okay. So I'm reasonably convinced that there's a turnout effect. But the **major limitation** of the turnout effect alone is that we don't know what it means. Is this a rah-rah rally-around-the-flag, the-police-just-kept-me-safe, wohoo-government effect? Or is this evidence of voters holding the state accountable?
-
-I'm not sure how to get at this question. I'd love to use timing in responses to the CCES to see if people who responded before / after a killing in their county had different views of the police, but the geographical effect goes away at a mile, so I don't know if I trust that. For now, I'm not sure if there's anything much stronger than Biden's vote share in each precinct.
-
-So here's the estimated bump that Biden got in places with a killing immediately before the election:
-
-```{r dists-chunk-results, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Estimated Effect Size, EB + Covariates, 2020 Only", fig.pos = "H", fig.align = "center"}
-p2 <- readRDS("temp/different_dists_results.rds")
-print(p2)
-```
-
-There's not much evidence of any effect here.
-
-\newpage
-# References {-}

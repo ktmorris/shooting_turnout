@@ -1,0 +1,63 @@
+---
+title: "Supplementary Information"
+output:
+  bookdown::pdf_document2:
+    toc: yes
+    fig_caption: yes
+    latex_engine: xelatex
+    keep_tex: true
+bibliography: "shootings_to.bib"
+link-citations: yes
+fontsize: 12pt
+header-includes:
+    - \usepackage{rotating}
+    - \usepackage{setspace}
+    - \usepackage{siunitx}
+    - \usepackage{lscape}
+    - \usepackage{pdfpages}
+    - \newcommand{\beginsupplement}{\setcounter{table}{0}  \renewcommand{\thetable}{A\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{A\arabic{figure}}}
+---
+```{r setup, echo = F, message = F, warning = F}
+knitr::opts_knit$set(root.dir = "..", dev = "cairo_pdf")
+library(systemfit)
+library(AER)
+library(sandwich)
+library(lmtest)
+library(kevostools)
+library(scales)
+library(tidyverse)
+library(extrafont)
+library(kableExtra)
+library(data.table)
+library(stargazer)
+loadfonts()
+```
+\pagenumbering{arabic}
+\newpage
+\doublespacing
+\beginsupplement
+\newpage
+## Alternative Specifications for Regression Discontinuity {-}
+
+In the body of this manuscript we present estimated local average treatment effects (LATEs) using a regression discontinuity approach that incorporates both entropy balancing and OLS covariates. Here, we show that our primary results hold when we include only entropy balancing, only OLS covariates, or no adjustment at all.
+
+```{r alt-proc, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:alt-bal}Alternative Approaches for Ensuring Balance Across Cut-Point", fig.pos = "!ht", fig.align = "center"}
+p2 <- readRDS("temp/alt_proc_rdd.rds")
+print(p2)
+```
+
+Figure \ref{fig:alt-bal} makes clear that the overall LATEs we identify in the body of the manuscript are robust to alternative ways of ensuring that observations on either side of the cutpoint closely mirror one another. In fact, the estimated LATEs in the body of the manuscript are in many cases *smaller* than those presented here, indicating that our primary approach is, if anything, conservative.
+
+## Robustness Checks for Primary RD {-}
+
+Throughout the body of the manuscript, we use a local polynomial of 1, following best practice. In Figure \ref{fig:dif-poly} we show that our primary results for the 0.5-mile threshold are consistent when we use a local polynomial anywhere between 1 and 5. Again, our choice of a local polynomial of 1 appears to be, if anything, a conservative approach.
+
+```{r diff-poly, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:dif-poly}Placebo Alertnate Cut-Points", fig.pos = "!ht", fig.align = "center"}
+print(readRDS("temp/diff_polys_primary.rds"))
+```
+
+Figure \ref{fig:cutpoint} shows that election day is a meaningful cut-point and that, as expected, other cut-points before and after election day do not map on to meaningul differences in turnout.
+
+```{r placebo-cuts, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:cutpoint}Placebo Alertnate Cut-Points", fig.pos = "!ht", fig.align = "center"}
+print(readRDS("temp/placebos.rds"))
+```
