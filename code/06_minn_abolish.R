@@ -82,17 +82,60 @@ tot <- left_join(tot,
                  readRDS("temp/mn_precinct_demos.rds"),
                  by = c("x" = "long", "y" = "lat"))
 
+tot <- tot %>% 
+  mutate(median_income = median_income / 10000,
+         police_stops = log(police_stops),
+         pop_dens = log(pop_dens))
 
-m1 <- feols(share_yes ~ dist +
+
+m1 <- feols(share_yes ~ dist, tot, cluster = "inds")
+summary(m1)
+m2 <- feols(share_yes ~ dist +
+              police_stops, tot, cluster = "inds")
+summary(m2)
+m3 <- feols(share_yes ~ dist +
               police_stops +
               nh_black + nh_white + latino + asian +
               median_income + some_college + median_age +
               pop_dens + share_biden, tot, cluster = "inds")
-summary(m1)
+summary(m3)
 
-ggplot(tot, aes(x = dist, y = share_yes)) + geom_point() +
+
+modelsummary(list(m1, m2, m3),
+             statistic = "std.error",
+             stars = c("*" = 0.05, "**" = 0.01, "***" = 0.001),
+             coef_map = c("dist" = "Distance to Closest Police Killing",
+                          "police_stops" = "Logged Number of Police Stops in 2021",
+                          "nh_black" = "Pct. Non-Hispanic Black",
+                          "nh_white" = "Pct. Non-Hispanic White",
+                          "latino" = "Pct. Latinx",
+                          "asian" = "Pct. Asian",
+                          "median_income" = "Median Income (dollarsign10,000s)",
+                          "some_college" = "Pct. with Some College",
+                          "median_age" = "Median Age",
+                          "pop_dens" = "Logged Population Density",
+                          "share_biden" = "Biden Voteshare in 2020",
+                          "(Intercept)" = "Intercept"),
+             notes = list("Standard errors clustered by nearest killing."),
+             gof_omit = 'DF|Deviance|AIC|BIC|Within|Pseudo|Log|Std|FE',
+             title = "\\label{tab:minn-reg} Support for Abolishing Minneapolis Police Department",
+             latex_options = "scale_down",
+             output = "temp/minn_reg.tex",
+             escape = FALSE)
+
+j <- fread("./temp/minn_reg.tex", header = F, sep = "+") %>% 
+  mutate(V1 = gsub("dollarsign", "\\\\$", V1))
+
+write.table(j, "./temp/minn_reg.tex", quote = F, col.names = F,
+            row.names = F)
+
+####################
+
+pl <- ggplot(tot, aes(x = dist, y = share_yes)) + geom_point() +
   theme_bc(base_family = "LM Roman 10") +
   scale_y_continuous(labels = percent) +
-  labs(x = "Distance Between Precinct and Closest Police Killing (2013--2021)",
+  labs(x = "Distance Between Precinct and Closest Police Killing (2013–2021)",
        y = "Share Supporting Police Abolition") +
   geom_smooth(method = "lm", formula = y ~ poly(x, 1))
+pl
+saveRDS(pl, "temp/minn_scatter.rds")
