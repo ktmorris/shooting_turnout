@@ -3,6 +3,16 @@ library(did)
 library(tidyverse)
 library(data.table)
 
+reg_deadlines <- fread("raw_data/reg_deadlines.csv")
+
+reg_deadlines <- left_join(reg_deadlines,
+                           fips_codes %>% 
+                             select(state = state_name,
+                                    state_code) %>% 
+                             distinct()) %>% 
+  select(state_code, reg_deadline) %>% 
+  mutate(reg_deadline = as.Date(reg_deadline))
+
 # full_set <- readRDS("temp/geocoded_shootings.rds") %>%
 #   ungroup() %>%
 #   mutate(id2 = row_number(),
@@ -65,20 +75,22 @@ library(data.table)
 #   }
 # }
 # 
-# files <- list.files(path = "temp/", pattern = "^bgs_[0-9][0-9]_2020.rds", full.names = T)
-# 
-# all_bgs <- rbindlist(lapply(files, readRDS))
-# 
-# saveRDS(all_bgs, "temp/all_bgs_dist_shooting_fall.rds")
-# 
-# cleanup('all_bgs')
-# 
-# all_bgs <- all_bgs %>%
-#   mutate(week = week(date)) %>%
-#   select(GEOID, week, id) %>%
-#   group_by(GEOID, week) %>%
-#   filter(row_number() == 1) %>%
-#   mutate(t = 1)
+files <- list.files(path = "temp/", pattern = "^bgs_[0-9][0-9]_2020.rds", full.names = T)
+
+all_bgs <- rbindlist(lapply(files, readRDS)) %>% 
+  mutate(state_code = substring(GEOID, 1, 2))
+
+all_bgs <- left_join(all_bgs, reg_deadlines)
+
+all_bgs <- all_bgs %>%
+  mutate(week = ceiling(as.integer((date - reg_deadline)) / 7)) %>%
+  filter(week >= -25,
+         week <= 0) %>%
+  select(GEOID, week, id) %>%
+  group_by(GEOID, week) %>%
+  filter(row_number() == 1) %>%
+  mutate(t = 1,
+         week = week + 26)
 # 
 # ######################################
 # 
@@ -118,48 +130,57 @@ library(data.table)
 # 
 # saveRDS(regs, "temp/daily_national_regs.rds")
 # 
-# regs <- readRDS("temp/daily_national_regs.rds") %>%
-#   group_by(week = week(reg_date), GEOID) %>%
-#   summarize(n = sum(n)) %>%
-#   filter(!grepl("NA", GEOID))
-# 
-# 
-# l <- data.frame(GEOID = rep(unique(regs$GEOID), length(unique(regs$week))),
-#                 week = sort(rep(unique(regs$week), length(unique(regs$GEOID)))))
-# 
-# full <- left_join(l, regs)
-# 
-# full <- full %>%
-#   mutate(n = ifelse(is.na(n), 0, n))
-# 
-# full <- left_join(full, all_bgs, by = c("GEOID", "week"))
-# 
-# full$t <- ifelse(is.na(full$t), 0, full$t)
-# 
-# full$state <- substring(full$GEOID, 1, 2)
-# 
-# census <- readRDS("../regular_data/census_bgs_19.rds")
-# 
-# full <- left_join(full, census)
-# 
-# full$state <- as.numeric(full$state)
-# 
-# full <- full %>%
-#   group_by(GEOID) %>%
-#   mutate(group_id = cur_group_id())
-# 
-# full <- left_join(full, all_bgs %>%
-#                     group_by(GEOID) %>%
-#                     summarize(tw = min(week))) %>%
-#   mutate(tw = ifelse(is.na(tw), 0, tw))
-# 
-# full$state <- as.integer(substring(full$GEOID, 1, 2))
-# 
-# cleanup("full")
-# 
-# full <- as.data.frame(full)
-# 
-# saveRDS(full, "temp/balanced_registration_data.rds")
+regs <- readRDS("temp/daily_national_regs.rds") %>% 
+  mutate(state_code = substring(GEOID, 1, 2))
+
+regs <- inner_join(regs, reg_deadlines)
+
+regs <- regs %>%
+  mutate(week = ceiling(as.integer((reg_date - reg_deadline)) / 7)) %>% 
+  group_by(week, GEOID) %>%
+  summarize(n = sum(n)) %>%
+  filter(!grepl("NA", GEOID)) %>%
+  filter(week >= -25,
+         week <= 0) %>% 
+  mutate(week = week + 26)
+
+
+l <- data.frame(GEOID = rep(unique(regs$GEOID), length(unique(regs$week))),
+                week = sort(rep(unique(regs$week), length(unique(regs$GEOID)))))
+
+full <- left_join(l, regs)
+
+full <- full %>%
+  mutate(n = ifelse(is.na(n), 0, n))
+
+full <- left_join(full, all_bgs, by = c("GEOID", "week"))
+
+full$t <- ifelse(is.na(full$t), 0, full$t)
+
+full$state <- substring(full$GEOID, 1, 2)
+
+census <- readRDS("../regular_data/census_bgs_19.rds")
+
+full <- left_join(full, census)
+
+full$state <- as.numeric(full$state)
+
+full <- full %>%
+  group_by(GEOID) %>%
+  mutate(group_id = cur_group_id())
+
+full <- left_join(full, all_bgs %>%
+                    group_by(GEOID) %>%
+                    summarize(tw = min(week))) %>%
+  mutate(tw = ifelse(is.na(tw), 0, tw))
+
+full$state <- as.integer(substring(full$GEOID, 1, 2))
+
+cleanup("full")
+
+full <- as.data.frame(full)
+
+saveRDS(full, "temp/balanced_registration_data.rds")
 
 full <- readRDS("temp/balanced_registration_data.rds")
 
@@ -173,48 +194,22 @@ full$id <- ifelse(is.na(full$id), 9999999, full$id)
 
 full <- full %>% 
   group_by(group_id) %>% 
-  mutate(id = min(id))
+  mutate(id = min(id),
+         id = ifelse(tw == 0, 7000 + group_id, id))
 
 full <- full[complete.cases(full), ]
-# 
-# pm_ps <- PanelMatch(lag = 4, time.id = "week", unit.id = "group_id",
-#                     treatment = "t", refinement.method = "ps.match",
-#                     data = full, match.missing = TRUE,
-#                     size.match = 1, qoi = "att", outcome.var = "n",
-#                     lead = 0:4, forbid.treatment.reversal = FALSE,
-#                     use.diagonal.variance.matrix = TRUE,
-#                     covs.formula = ~ nh_white + nh_black + asian + latino + median_age +
-#                       median_income + pop_dens + some_college + state,
-#                     exact.match.variables = "state")
-# PE.results2 <- PanelEstimate(sets = pm_ps, data = full)
-# 
-# summary(PE.results2)
-# 
-# 
-# pm <- PanelMatch(lag = 1, time.id = "week", unit.id = "group_id",
-#                  treatment = "t", refinement.method = "none",
-#                  data = full, match.missing = TRUE,
-#                  size.match = 5, qoi = "att", outcome.var = "n",
-#                  lead = 0:4, forbid.treatment.reversal = FALSE,
-#                  use.diagonal.variance.matrix = TRUE)
-# PE.results1 <- PanelEstimate(sets = pm, data = full)
-# 
-# summary(PE.results1)
-# 
-# save(PE.results1, PE.results2, file = "temp/panel_match.rdata")
 
 out <- att_gt(yname = "n",
               gname = "tw",
               idname = "group_id",
               tname = "week",
               control_group = c("nevertreated", "notyettreated"),
-              xformla = ~median_income + nh_white + nh_black + asian + latino +
-                median_age + median_income + pop_dens + state*week,
               data = full,
-              clustervars = c("group_id", "id")
+              clustervars = c("group_id", "id"),
+              alp = 0.05
 )
 
-save(out, "temp/did_out.rds")
+saveRDS(out, "temp/did_out_nocovs.rds")
 
 out <- readRDS("temp/did_out_nocovs.rds")
 
@@ -223,3 +218,78 @@ agg.dy <- aggte(out, type = "dynamic")
 agg.gr <- aggte(out, type = "group")
 
 save(agg.ct, agg.dy, agg.gr, file = "temp/aggregates_did_nocovs.rdata")
+
+
+#######################################################
+
+
+out <- att_gt(yname = "n",
+              gname = "tw",
+              idname = "group_id",
+              tname = "week",
+              control_group = c("nevertreated", "notyettreated"),
+              xformla = ~median_income + nh_white + nh_black + asian + latino +
+                median_age + median_income + pop_dens,
+              data = full,
+              clustervars = c("group_id", "id"),
+              alp = 0.05
+)
+
+saveRDS(out, "temp/did_out.rds")
+
+out <- readRDS("temp/did_out.rds")
+
+agg.ct <- aggte(out, type = "calendar")
+agg.dy <- aggte(out, type = "dynamic")
+agg.gr <- aggte(out, type = "group")
+
+save(agg.ct, agg.dy, agg.gr, file = "temp/aggregates_did.rdata")
+
+############################################
+
+
+load("temp/aggregates_did.rdata")
+
+p <- ggdid(agg.dy, title = " ", xgap = 4, ylim = c(-3, 3)) +
+  theme_bc(base_family = "LM Roman 10",
+           legend.position = "bottom") +
+  ggtitle(NULL) +
+  labs(y = "Weekly Registration Count",
+       x = "Weeks Since Treatment") +
+  scale_color_manual(values = c("black", "red"))
+
+p[["layers"]][[2]][["geom_params"]]$width <- 0
+p[["data"]][["post"]] <- factor(ifelse(p[["data"]][["post"]] == 0,
+                                       "Pre-Treatment",
+                                       "Post-Treatment"),
+                                levels = c("Pre-Treatment",
+                                           "Post-Treatment"))
+p[["layers"]][[2]][["mapping"]]["linetype"] <- p[["layers"]][[2]][["mapping"]][1]
+p[["layers"]][[1]][["mapping"]]["shape"] <- p[["layers"]][[2]][["mapping"]][1]
+p <- p +
+  scale_shape_manual(values = c(17, 16)) +
+  scale_linetype_manual(values = c("dashed", "solid"))
+
+####
+
+p2 <- ggdid(agg.ct, title = " ", xgap = 4, ylim = c(-3, 3)) +
+  theme_bc(base_family = "LM Roman 10",
+           legend.position = "bottom") +
+  ggtitle(NULL) +
+  labs(y = "Weekly Registration Count",
+       x = "Week of Year") +
+  scale_color_manual(values = c("red"))
+p2
+p2[["layers"]][[2]][["geom_params"]]$width <- 0
+p2[["data"]][["post"]] <- factor(ifelse(p2[["data"]][["post"]] == 0,
+                                       "Pre-Treatment",
+                                       "Post-Treatment"),
+                                levels = c("Pre-Treatment",
+                                           "Post-Treatment"))
+p2
+
+grid.arrange(p, p2, ncol = 2)
+
+
+saveRDS(p, "temp/did_length.rds")
+saveRDS(p2, "temp/did_week.rds")
