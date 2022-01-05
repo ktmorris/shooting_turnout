@@ -345,6 +345,12 @@ d20 <- bind_rows(
 )
 
 full_treat <- bind_rows(d16, d20)
+
+l <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
+              weights = full_treat$weight,
+              covs = select(full_treat,
+                            nh_black, latino, nh_white, asian, median_income, median_age,
+                            pop_dens, turnout_pre))
 ########################################
 
 out <- rbindlist(lapply(c(1:5), function(x){
@@ -422,7 +428,8 @@ j <- j +
   scale_x_continuous(breaks = c(-60, -30, 0, 30, 60),
                      labels = c("Killing Occurs\n60 Days\nBefore Election",
                                 "30", "Killing Occurs on\nElection Day",
-                                "30", "Killing Occurs\n60 Days\nAfter Election"))
+                                "30", "Killing Occurs\n60 Days\nAfter Election"),
+                     limits = c(-63, 63))
 j
 
 saveRDS(j, "temp/rd_plot.rds")
