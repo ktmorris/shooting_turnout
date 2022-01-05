@@ -132,7 +132,7 @@ out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
 
-out <- filter(out, estimate == "Traditional")
+out <- filter(out, estimate == "Robust")
 
 different_dists <- ggplot(out,
                           aes(x = p, y = coef, ymin = l, ymax = u)) +
@@ -236,7 +236,7 @@ out$u <- out$coef + 1.96*out$se
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
-out <- filter(out, estimate == "Traditional")
+out <- filter(out, estimate == "Robust")
 
 out <- mutate(out,
               bw = ifelse(bw == "b", "Plurality Black",
@@ -361,7 +361,7 @@ out$u <- out$coef + 1.96*out$se
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
-out <- filter(out, estimate == "Traditional")
+out <- filter(out, estimate == "Robust")
 
 out <- mutate(out,
               bw = ifelse(bw == "B", "Black Victim",
