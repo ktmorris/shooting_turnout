@@ -1,11 +1,11 @@
+
+#################################### read protest data
 # 
-# #################################### read protest data
+# download.file("https://raw.githubusercontent.com/washingtonpost/data-police-shootings/master/fatal-police-shootings-data.csv",
+#               "raw_data/wapo_shootings.csv")
 # 
-# # download.file("https://raw.githubusercontent.com/washingtonpost/data-police-shootings/master/fatal-police-shootings-data.csv",
-# #               "raw_data/wapo_shootings.csv")
-# 
-# # download.file("https://mappingpoliceviolence.org/s/MPVDatasetDownload.xlsx",
-# #               "raw_data/MPVDatasetDownload.xlsx")
+# download.file("https://mappingpoliceviolence.org/s/MPVDatasetDownload.xlsx",
+#               "raw_data/MPVDatasetDownload.xlsx")
 # 
 # shootings_wapo <- fread("raw_data/wapo_shootings.csv") %>%
 #   select(id, date, latitude, longitude, age, race) %>%
@@ -30,7 +30,12 @@
 #   filter(shootings_mapping, is.na(wapo_id__if_included_in_wapo_database_),
 #          !(wapo_id__if_included_in_wapo_database_ %in% shootings_wapo$id)) %>%
 #     mutate(type = "mapping")
-# )
+# ) %>% 
+#   filter(date < "2021-08-30")
+# 
+# full_set <- left_join(full_set %>% 
+#                         select(-latitude, -longitude, -zipcode),
+#                       readRDS("temp/geocoded_shootings.rds"))
 # 
 # geos <- filter(full_set, !is.na(latitude))
 # 
@@ -67,16 +72,18 @@
 # 
 # full_set <- bind_rows(
 #   geos,
-#   cbind(select(to_geo, -latitude, -longitude), hold) %>%
+#   cbind(select(to_geo, -latitude, -longitude, -score), hold) %>%
 #     mutate_at(vars(latitude, longitude), as.double)
 # )
+# 
+# full_set$id2 <- c(1:nrow(full_set))
+# 
 # 
 # saveRDS(full_set, "temp/geocoded_shootings.rds")
 ##########################
 full_set <- readRDS("temp/geocoded_shootings.rds") %>% 
   ungroup() %>% 
-  mutate(id2 = row_number(),
-         score = ifelse(is.na(score), 100, as.numeric(score))) %>% 
+  mutate(score = ifelse(is.na(score), 100, as.numeric(score))) %>% 
   filter(score > 95)
 ## turn protest locations into spatial data
 
