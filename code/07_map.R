@@ -21,7 +21,9 @@ full_set <- readRDS("temp/geocoded_shootings.rds") %>%
 
 pre_post <- filter(full_set,
                    (date >= as.Date("2020-11-03") - months(2) &
-                        date < as.Date("2020-11-03") + months(2))) %>% 
+                        date < as.Date("2020-11-03") + months(2)) |
+                     (date >= as.Date("2016-11-08") - months(2) &
+                        date < as.Date("2016-11-08") + months(2))) %>% 
   mutate(year = floor(year(date) / 2) * 2,
          pre = date < "2016-11-08" | (year == 2020 & date < "2020-11-03"))
 
@@ -45,7 +47,8 @@ pre_post$pre <- factor(pre_post$pre, levels = c("Before Election", "After Electi
 t <- ggplot() +
   geom_path(data = filter(state_map,
                           long > -130), mapping = aes(x = long, y = lat, group = group)) +
-  geom_point(aes(x = longitude, y = latitude, fill = pre, shape = pre), color = "black", data = pre_post,
+  geom_point(aes(x = longitude, y = latitude, fill = pre, shape = pre), color = "black",
+             data = filter(pre_post, year(date) == 2020),
              alpha = 0.5) +
   coord_map() +
   theme_bc(base_family = "LM Roman 10") +
@@ -65,3 +68,28 @@ t +
 saveRDS(t, "temp/map.rds")
 
 ggsave("temp/map.png")
+
+t <- ggplot() +
+  geom_path(data = filter(state_map,
+                          long > -130), mapping = aes(x = long, y = lat, group = group)) +
+  geom_point(aes(x = longitude, y = latitude, fill = pre, shape = pre), color = "black",
+             data = filter(pre_post, year(date) == 2016),
+             alpha = 0.5) +
+  coord_map() +
+  theme_bc(base_family = "LM Roman 10") +
+  theme(axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        legend.position = "bottom",
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  scale_fill_manual(values = c("black", "red")) +
+  scale_shape_manual(values = c(21, 24)) +
+  labs(fill = "Killing Timing", x = NULL, y = NULL,
+       shape = "Killing Timing")
+
+t +
+  ggtitle("Police Killing within 2 Months of 2016 Election")
+saveRDS(t, "temp/map_16.rds")
+
+ggsave("temp/map_16.png")
