@@ -44,42 +44,71 @@ loadfonts()
 \pagenumbering{arabic}
 
 ```{r map, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("./temp/map.rds"))
+print(readRDS("./temp/map.rds") + theme(text = element_text(size = 15)))
+```
+
+```{r map-16, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("./temp/map_16.rds") + theme(text = element_text(size = 15)))
+```
+
+```{r diff-poly, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("./temp/diff_polys_primary.rds") + theme(text = element_text(size = 15)))
+```
+
+```{r placebo-cuts, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("./temp/placebos.rds") + theme(text = element_text(size = 15)))
+```
+
+```{r bws, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5.5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/alt_bws_rdd.rds") + theme(text = element_text(size = 15)))
+```
+
+
+```{r alt-proc, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5.5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/alt_proc_rdd.rds") + theme(text = element_text(size = 15)))
+```
+
+```{r placebo-prior, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("./temp/placebo-prior.rds") + theme(text = element_text(size = 15)))
 ```
 
 ```{r did-length, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("./temp/did_length.rds"))
+print(readRDS("./temp/did_length.rds") + theme(text = element_text(size = 15)))
 ```
 
 ```{r did-week, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("./temp/did_week.rds"))
+print(readRDS("./temp/did_week.rds") + theme(text = element_text(size = 15)))
 ```
 
 
 ```{r rd-plot, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("./temp/rd_plot.rds"))
+print(readRDS("./temp/rd_plot.rds") + theme(text = element_text(size = 15)))
 ```
 
 ```{r dists, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("temp/different_dists_primary.rds"))
+print(readRDS("temp/different_dists_primary.rds") + theme(text = element_text(size = 15)))
 ```
 
 
 ```{r nhood, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("temp/plurality_nhood.rds"))
+print(readRDS("temp/plurality_nhood.rds") + theme(text = element_text(size = 15)))
 ```
 
 
 ```{r victim, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("temp/victim_race.rds"))
+print(readRDS("temp/victim_race.rds") + theme(text = element_text(size = 15)))
 ```
 
 ```{r minn-scatter, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("temp/minn_scatter.rds"))
+print(readRDS("temp/minn_scatter.rds") + theme(text = element_text(size = 15)))
 ```
 
 ```{r paneled-race-effects, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("temp/all_plots.rds"))
+print(readRDS("temp/all_plots.rds") + theme(text = element_text(size = 15)))
+```
+
+```{r first-difference, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/first_diff_plot.rds") + theme(text = element_text(size = 15)))
 ```
 
 \begin{singlespace}
