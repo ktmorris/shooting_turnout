@@ -1,4 +1,4 @@
-
+# 
 # reg_deadlines <- fread("raw_data/reg_deadlines.csv") %>%
 #   mutate(reg_deadline = as.Date(reg_deadline, "%m/%d/%Y"))
 # 
@@ -65,7 +65,7 @@
 # 
 #   #########################################
 # 
-#   tot <- rbindlist(lapply(seq(as.Date("2020-01-01"), as.Date("2020-10-31"), by="days"), function(d){
+#   tot <- rbindlist(lapply(seq(as.Date("2020-01-01"), as.Date("2020-11-03"), by="days"), function(d){
 #     l <- find_closest(bg_data, centroids, d) %>%
 #       filter(dist < 0.5)
 #   }))
@@ -115,7 +115,7 @@
 #                                 from [", t, "]")) %>%
 #         mutate(reg_date = as.Date(Voters_OfficialRegDate, "%m/%d/%Y")) %>%
 #         filter(reg_date >= "2020-01-01",
-#                reg_date <= "2020-10-31") %>%
+#                reg_date <= "2020-11-03") %>%
 #         mutate(GEOID = paste0(scode, str_pad(Voters_FIPS, width = 3, side = "left", pad = "0"),
 #                               str_pad(Residence_Addresses_CensusTract, width = 6, side = "left", pad = "0"),
 #                               Residence_Addresses_CensusBlockGroup)) %>%
@@ -169,7 +169,7 @@
 # 
 # full <- left_join(full, all_bgs %>%
 #                     group_by(GEOID) %>%
-#                     filter(week == min(week)) %>% 
+#                     filter(week == min(week)) %>%
 #                     rename(tw = week)) %>%
 #   mutate(tw = ifelse(is.na(tw), 0, tw),
 #          t = ifelse(is.na(t), 0, t))
@@ -182,7 +182,7 @@
 #   mutate(so = 1 - nh_white - nh_black - latino,
 #          plu = ifelse(nh_white > nh_black & nh_white > latino & nh_white > so, "w",
 #                       ifelse(nh_black > nh_white & nh_black > latino & nh_black > so, "b",
-#                              ifelse(latino > nh_white & latino > nh_black & latino > so, "l", "o")))) %>% 
+#                              ifelse(latino > nh_white & latino > nh_black & latino > so, "l", "o")))) %>%
 #   mutate(race = ifelse(race %in% c("B", "Black"), "Black",
 #                        ifelse(race %in% c("", "Unknown race"), "U",
 #                               ifelse(is.na(race), "C", "Other"))))
