@@ -198,7 +198,8 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
       mutate(treated = F,
              d2 = as.integer(date - as.Date("2016-11-08")))
   ) %>% 
-    mutate(year = as.integer(year))
+    mutate(year = as.integer(year),
+           t16 = year == 1)
   
   
   full_treat <- full_treat[complete.cases(select(full_treat,
@@ -235,6 +236,9 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   )
   
   full_treat <- bind_rows(d16, d20)
+  if(threshold == 0.5){
+    saveRDS(full_treat, "temp/primary_half.rds")
+  }
   ########################################
   
   l <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
@@ -242,12 +246,14 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                 covs = select(full_treat,
                               latino, nh_white, asian,
                               nh_black, median_income, median_age,
-                              pop_dens, turnout_pre))
+                              pop_dens, turnout_pre, t16))
   
   f <- tibble(coef = l$coef,
               se = l$se, 
               pv = l$pv,
-              p = threshold)
+              p = threshold,
+              n = l$N_h[1] + l$N_h[2],
+              bw = l[["bws"]][1])
 }))
 
 out$l <- out$coef - 1.96*out$se
@@ -269,88 +275,28 @@ different_dists <- ggplot(out,
 different_dists
 
 saveRDS(different_dists, "temp/different_dists_primary.rds")
+
+sample_sizes <- ggplot(filter(out, estimate == "Traditional"),
+                          aes(x = p, y = n)) +
+  geom_line() +
+  geom_point() +
+  theme_bc(base_family = "LM Roman 10") +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(y = "Effective Sample Size", x = "Radius Around Shooting (Miles)") +
+  scale_y_continuous(labels = comma)
+sample_sizes
+saveRDS(sample_sizes, "temp/sample_size_plot.rds")
 ###########################
-threshold <- 0.5
-full_treat <- bind_rows(
-  dists %>%
-    filter(year == "2020",
-           dist_pre <= threshold,
-           dist_post > threshold) %>%
-    select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout, cvap,
-           median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-           turnout_16, turnout_18, turnout_pre, race = race_pre) %>%
-    mutate(treated = T,
-           d2 = as.integer(date - as.Date("2020-11-03"))),
-  dists %>%
-    filter(year == "2020",
-           dist_pre > threshold,
-           dist_post <= threshold) %>%
-    select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
-           median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-           turnout_16, turnout_18, turnout_pre, race = race_post) %>%
-    mutate(treated = F,
-           d2 = as.integer(date - as.Date("2020-11-03"))),
-  dists %>%
-    filter(year == "2016",
-           dist_pre <= threshold,
-           dist_post > threshold) %>%
-    select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
-           median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-           turnout_16, turnout_18, turnout_pre, race = race_pre) %>%
-    mutate(treated = T,
-           d2 = as.integer(date - as.Date("2016-11-08"))),
-  dists %>%
-    filter(year == "2016",
-           dist_pre > threshold,
-           dist_post <= threshold) %>%
-    select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
-           median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-           turnout_16, turnout_18, turnout_pre, race = race_post) %>%
-    mutate(treated = F,
-           d2 = as.integer(date - as.Date("2016-11-08")))
-) %>%
-  mutate(year = as.integer(year))
+###########################
+###########################
 
-full_treat <- full_treat[complete.cases(select(full_treat,
-                                               latino, nh_white, asian,
-                                               nh_black, median_income, median_age,
-                                               pop_dens, turnout_pre)), ]
-########################
-d16 <- filter(full_treat, year == 1)
-
-mb <- ebalance(d16$treated,
-               select(d16,
-                      nh_black, latino, nh_white, asian, median_income, median_age,
-                      pop_dens, turnout_pre))
-
-d16 <- bind_rows(
-  filter(d16, treated) %>%
-    mutate(weight = 1),
-  filter(d16, !treated) %>%
-    mutate(weight = mb$w)
-)
-
-d20 <- filter(full_treat, year == 3)
-
-mb <- ebalance(d20$treated,
-               select(d20,
-                      nh_black, latino, nh_white, asian, median_income, median_age,
-                      pop_dens, turnout_pre))
-
-d20 <- bind_rows(
-  filter(d20, treated) %>%
-    mutate(weight = 1),
-  filter(d20, !treated) %>%
-    mutate(weight = mb$w)
-)
-
-full_treat <- bind_rows(d16, d20)
+full_treat <- readRDS("temp/primary_half.rds")
 
 l <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
               weights = full_treat$weight,
               covs = select(full_treat,
                             nh_black, latino, nh_white, asian, median_income, median_age,
-                            pop_dens, turnout_pre))
+                            pop_dens, turnout_pre, t16))
 ########################################
 
 out <- rbindlist(lapply(c(1:5), function(x){
@@ -358,7 +304,7 @@ out <- rbindlist(lapply(c(1:5), function(x){
                 weights = full_treat$weight,
                 covs = select(full_treat,
                               nh_black, latino, nh_white, asian, median_income, median_age,
-                              pop_dens, turnout_pre))
+                              pop_dens, turnout_pre, t16))
 
   f <- tibble(coef = l$coef,
               se = l$se,
@@ -389,7 +335,7 @@ out <- rbindlist(lapply(c(-7:7), function(x){
                 weights = full_treat$weight,
                 covs = select(full_treat,
                               nh_black, latino, nh_white, asian, median_income, median_age,
-                              pop_dens, turnout_pre))
+                              pop_dens, turnout_pre, t16))
   
   f <- tibble(coef = l$coef,
               se = l$se,
