@@ -61,7 +61,8 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
       mutate(treated = F,
              d2 = as.integer(date - as.Date("2016-11-08")))
   ) %>% 
-    mutate(year = as.integer(year))
+    mutate(year = as.integer(year),
+           t16 = year == 1)
   
   
   full_treat <- full_treat[complete.cases(select(full_treat,
@@ -139,7 +140,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                 covs = select(full_treat,
                               latino, nh_white, asian,
                               nh_black, median_income, median_age,
-                              pop_dens, turnout_pre))
+                              pop_dens, turnout_pre, t16))
   
   l2 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                 weights = full_treat$weight)
@@ -151,35 +152,52 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                 covs = select(full_treat,
                               latino, nh_white, asian,
                               nh_black, median_income, median_age,
-                              pop_dens))
+                              pop_dens, t16))
   
   bw <- rdbwselect(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                    weights = full_treat$weight,
                    covs = select(full_treat,
                                  latino, nh_white, asian,
                                  nh_black, median_income, median_age,
-                                 pop_dens, turnout_pre))
+                                 pop_dens, turnout_pre, t16))
   
   l5 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                  weights = full_treat$weight,
                  covs = select(full_treat,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre), h = bw[["bws"]][1]*2)
+                               pop_dens, turnout_pre, t16), h = bw[["bws"]][1]*2)
   
   l6 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                  weights = full_treat$weight,
                  covs = select(full_treat,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre), h = c(bw[["bws"]][1], 30))
+                               pop_dens, turnout_pre, t16), h = c(bw[["bws"]][1], 30))
   
   l7 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                  weights = full_treat$weight,
                  covs = select(full_treat,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre), h = c(bw[["bws"]][1], 60))
+                               pop_dens, turnout_pre, t16), h = c(bw[["bws"]][1], 60))
+  
+  o16 <- filter(full_treat, year == 1)
+  
+  l8 <- rdrobust(y = o16$turnout, x = o16$d2, p = 1, c = 0, cluster = o16$id,
+                 weights = o16$weight,
+                 covs = select(o16,
+                               latino, nh_white, asian,
+                               nh_black, median_income, median_age,
+                               pop_dens, turnout_pre))
+  
+  o20 <- filter(full_treat, year != 1)
+  l9 <- rdrobust(y = o20$turnout, x = o20$d2, p = 1, c = 0, cluster = o20$id,
+                 weights = o20$weight,
+                 covs = select(o20,
+                               latino, nh_white, asian,
+                               nh_black, median_income, median_age,
+                               pop_dens, turnout_pre))
   
   f <- bind_rows(
     tibble(coef = l$coef,
@@ -216,12 +234,22 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            se = l7$se, 
            pv = l7$pv,
            p = threshold,
-           t = "Nonpara, 60")
+           t = "Nonpara, 60"),
+    tibble(coef = l8$coef,
+           se = l8$se, 
+           pv = l8$pv,
+           p = threshold,
+           t = "Only 2016"),
+    tibble(coef = l9$coef,
+           se = l9$se, 
+           pv = l9$pv,
+           p = threshold,
+           t = "Only 2020")
   )
 }))
 
-saveRDS(out, "temp/alt_rdds.rds")
-out <- readRDS("temp/alt_rdds.rds") %>% 
+saveRDS(out, "temp/alt_rdds2.rds")
+out <- readRDS("temp/alt_rdds2.rds") %>% 
   filter(t %in% c('Entropy Balancing','OLS','No Adjustment'))
 out$l <- out$coef - 1.96*out$se
 out$u <- out$coef + 1.96*out$se
@@ -246,7 +274,7 @@ saveRDS(different_dists, "temp/alt_proc_rdd.rds")
 
 ######################
 
-out <- readRDS("temp/alt_rdds.rds") %>% 
+out <- readRDS("temp/alt_rdds2.rds") %>% 
   filter(t == "First Difference in Turnout")
 out$l <- out$coef - 1.96*out$se
 out$u <- out$coef + 1.96*out$se
@@ -268,7 +296,7 @@ different_dists
 saveRDS(different_dists, "temp/first_diff_plot.rds")
 ######################
 
-out <- readRDS("temp/alt_rdds.rds") %>% 
+out <- readRDS("temp/alt_rdds2.rds") %>% 
   filter(t %in% c('Double Bandwidth','Nonpara, 30','Nonpara, 60')) %>% 
   mutate(t = ifelse(t == "Nonpara, 30", "30 Days",
                     ifelse(t == "Nonpara, 60", "60 Days", t)))
@@ -292,6 +320,31 @@ different_dists <- ggplot(out,
 different_dists
 
 saveRDS(different_dists, "temp/alt_bws_rdd.rds")
+
+######################
+
+out <- readRDS("temp/alt_rdds2.rds") %>% 
+  filter(t %in% c('Only 2016', 'Only 2020'))
+out$l <- out$coef - 1.96*out$se
+out$u <- out$coef + 1.96*out$se
+out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
+
+out <- mutate_at(out, vars(coef, l, u), ~. * -1)
+
+out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
+# out$t <- factor(out$t, levels = c('Double Bandwidth','30 Days','60 Days'))
+
+different_dists <- ggplot(out,
+                          aes(x = p, y = coef, ymin = l, ymax = u)) +
+  facet_grid(t~estimate) +
+  geom_point() +
+  geom_errorbar(width = 0) + 
+  theme_bc(base_family = "LM Roman 10", base_size = 13) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(y = "Local Average Treatment Effect", x = "Radius Around Shooting (Miles)")
+different_dists
+
+saveRDS(different_dists, "temp/individual_years.rds")
 
 #################################################################
 #################################################################
@@ -340,7 +393,8 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
       mutate(treated = F,
              d2 = as.integer(date - as.Date("2016-11-08")))
   ) %>% 
-    mutate(year = as.integer(year))
+    mutate(year = as.integer(year),
+           t16 = year == 1)
   
   
   full_treat <- full_treat[complete.cases(select(full_treat,
@@ -384,7 +438,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                 covs = select(full_treat,
                               latino, nh_white, asian,
                               nh_black, median_income, median_age,
-                              pop_dens))
+                              pop_dens, t16))
   
   f <- tibble(coef = l$coef,
               se = l$se, 
