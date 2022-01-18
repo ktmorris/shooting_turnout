@@ -111,6 +111,18 @@ print(readRDS("temp/all_plots.rds") + theme(text = element_text(size = 15)))
 print(readRDS("temp/first_diff_plot.rds") + theme(text = element_text(size = 15)))
 ```
 
+```{r samples, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/sample_size_plot.rds") + theme(text = element_text(size = 15)))
+```
+
+```{r samples-bo, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/sample_sizes_breakout.rds") + theme(text = element_text(size = 15)))
+```
+
+```{r individ-years, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/individual_years.rds") + theme(text = element_text(size = 15)))
+```
+
 \begin{singlespace}
 
  

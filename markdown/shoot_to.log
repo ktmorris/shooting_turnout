@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/W32TeX) (preloaded format=xelatex 2021.10.27)  5 JAN 2022 18:10
+This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/W32TeX) (preloaded format=xelatex 2021.10.27)  18 JAN 2022 14:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -701,6 +701,15 @@ LaTeX Warning: Label `fig:map' multiply defined.
 
 LaTeX Warning: Label `fig:map' multiply defined.
 
+
+LaTeX Warning: Label `fig:map' multiply defined.
+
+
+LaTeX Warning: Label `fig:map' multiply defined.
+
+
+LaTeX Warning: Label `fig:map' multiply defined.
+
 )
 \openout1 = `shoot_to.aux'.
 
@@ -1181,28 +1190,43 @@ File: shoot_to_files/figure-latex/first-difference-1.pdf Graphic file (type pdf
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 8.4pt on input line 267.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 6.0pt on input line 267.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 8.40076pt on input line 267.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 6.00055pt on input line 267.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 8.3991pt on input line 267.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 5.99936pt on input line 267.
+File: shoot_to_files/figure-latex/samples-1.pdf Graphic file (type pdf)
+<use shoot_to_files/figure-latex/samples-1.pdf>
 
-Overfull \hbox (20.21695pt too wide) in paragraph at lines 267--297
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+File: shoot_to_files/figure-latex/samples-bo-1.pdf Graphic file (type pdf)
+<use shoot_to_files/figure-latex/samples-bo-1.pdf>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+File: shoot_to_files/figure-latex/individ-years-1.pdf Graphic file (type pdf)
+<use shoot_to_files/figure-latex/individ-years-1.pdf>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
+(Font)              scaled to size 8.4pt on input line 294.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
+(Font)              scaled to size 6.0pt on input line 294.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
+(Font)              scaled to size 8.40076pt on input line 294.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
+(Font)              scaled to size 6.00055pt on input line 294.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
+(Font)              scaled to size 8.3991pt on input line 294.
+LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
+(Font)              scaled to size 5.99936pt on input line 294.
+
+Overfull \hbox (20.21695pt too wide) in paragraph at lines 294--324
  [][] 
  []
 
 [1]
 Overfull \vbox (103.87805pt too high) has occurred while \output is active []
 
-[2] [3] [4] [5] [6] [7] [8] [9] [10] [11] [12] [13] [14] [15] [16] (./shoot_to.
-aux)
+[2] [3] [4] [5] [6] [7] [8] [9] [10] [11] [12] [13] [14] [15] [16] [17] [18] [1
+9] (./shoot_to.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
@@ -1210,12 +1234,12 @@ Package rerunfilecheck Info: File `shoot_to.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 18145 strings out of 478472
- 324636 string characters out of 5859625
- 801738 words of memory out of 5000000
- 38157 multiletter control sequences out of 15000+600000
+ 18178 strings out of 478472
+ 326085 string characters out of 5859625
+ 802984 words of memory out of 5000000
+ 38187 multiletter control sequences out of 15000+600000
  411869 words of font info for 88 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  87i,12n,120p,327b,500s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on shoot_to.pdf (17 pages).
+Output written on shoot_to.pdf (20 pages).
