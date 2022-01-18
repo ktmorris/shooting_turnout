@@ -1,12 +1,63 @@
-
 pd <- readOGR("raw_data/shp_bdry_votingdistricts", "bdry_votingdistricts")
 pd <- spTransform(pd, "+proj=longlat +datum=NAD83 +no_defs")
 pd <- subset(pd, MCDNAME == "Minneapolis")
+###########################
+cens <- readRDS("../regular_data/census_bgs_19.rds")
+
+db <- dbConnect(SQLite(), "D:/national_file_post20.db")
+
+vf <- dbGetQuery(db, "select Voters_FIPS,
+                        Residence_Addresses_CensusTract,
+                        Residence_Addresses_CensusBlockGroup,
+                        Residence_Addresses_Latitude,
+                        Residence_Addresses_Longitude
+                                from MN") %>% 
+  mutate(GEOID = paste0(27, str_pad(Voters_FIPS, width = 3, side = "left", pad = "0"),
+                        str_pad(Residence_Addresses_CensusTract, width = 6, side = "left", pad = "0"),
+                        Residence_Addresses_CensusBlockGroup)) %>% 
+  filter(!is.na(Residence_Addresses_Longitude), !is.na(Residence_Addresses_Latitude))
+
+vf <- left_join(vf, cens)
+
+pings  <- SpatialPoints(vf[,c("Residence_Addresses_Longitude", "Residence_Addresses_Latitude")],
+                        proj4string = pd@proj4string)
+
+vf$prec <- over(pings, pd)$SHORTLABEL
+
+vf <- filter(vf, !is.na(prec))
+
+vf <- left_join(vf, select(pd@data, prec = SHORTLABEL, VTDID))
+
+demos <- vf %>% 
+  group_by(p = prec, VTDID) %>% 
+  summarize_at(vars(asian,
+                    latino,
+                    nh_white,
+                    nh_black,
+                    median_income,
+                    some_college,
+                    median_age,
+                    pop_dens), mean, na.rm = T) %>% 
+  mutate(p = trimws(gsub("W|P|-", "", p)))
+
+demos <- cSplit(demos, "p", sep = " ") %>% 
+  mutate(p_2 = paste0(str_pad(gsub("[^0-9.-]", "", p_2), side = "left",
+                              width = 2, pad = "0"),
+                      gsub('[[:digit:]]+', '', p_2)))
+
+results_2020 <- read_xlsx("raw_data/2020-general-federal-state-results-by-precinct-official.xlsx",
+                          sheet = "Precinct-Results") %>% 
+  mutate(share_biden = USPRSDFL / USPRSTOTAL)
+
+demos <- left_join(demos, select(results_2020, VTDID, share_biden))
+
+saveRDS(demos, "temp/MSP2_precinct_demos.rds")
+
 ########################################
 ps <- fread("raw_data/minneapolis_Police_Stop_Data.csv")
 
 pings  <- SpatialPoints(ps[,c('long',
-                                'lat')], proj4string = pd@proj4string)
+                              'lat')], proj4string = pd@proj4string)
 ps$precinct <- over(pings, pd)$SHORTLABEL
 
 ps <- ps %>% 
@@ -70,17 +121,16 @@ tree <- createTree(coordinates(select(full_set, x = longitude, y = latitude)))
 inds <- knnLookup(tree , newdat = coordinates(centroids), k = 1)
 
 tot <- left_join(cbind(tot, inds) %>% 
-                         rename(inds = V1),
-                       select(full_set, longitude, latitude, date, id2),
-                       by = c("inds" = "id2"))
+                   rename(inds = V1),
+                 select(full_set, longitude, latitude, date, id2),
+                 by = c("inds" = "id2"))
 
 tot <- cbind(tot,
              data.table(dist = pointDistance(select(tot, x, y),
                                              select(tot, longitude, latitude), lonlat = T) * 0.000621371))
 
 tot <- left_join(tot,
-                 readRDS("temp/mn_precinct_demos.rds"),
-                 by = c("x" = "long", "y" = "lat"))
+                 demos)
 
 tot <- tot %>% 
   mutate(median_income = median_income / 10000,
