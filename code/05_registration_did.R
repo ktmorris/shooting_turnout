@@ -276,47 +276,48 @@ agg.gr <- aggte(out, type = "group")
 save(agg.ct, agg.dy, agg.gr, file = "temp/aggregates_did.rdata")
 
 ############################################
-# 
-# 
-# load("temp/aggregates_did.rdata")
-# 
-# p <- ggdid(agg.dy, title = " ", xgap = 4, ylim = c(-5, 5)) +
-#   theme_bc(base_family = "LM Roman 10",
-#            legend.position = "bottom") +
-#   ggtitle(NULL) +
-#   labs(y = "Weekly Registration Count",
-#        x = "Weeks Since Treatment") +
-#   scale_color_manual(values = c("black", "red"))
-# p
-# p[["layers"]][[2]][["geom_params"]]$width <- 0
-# p[["data"]][["post"]] <- factor(ifelse(p[["data"]][["post"]] == 0,
-#                                        "Pre-Treatment",
-#                                        "Post-Treatment"),
-#                                 levels = c("Pre-Treatment",
-#                                            "Post-Treatment"))
-# p[["layers"]][[2]][["mapping"]]["linetype"] <- p[["layers"]][[2]][["mapping"]][1]
-# p[["layers"]][[1]][["mapping"]]["shape"] <- p[["layers"]][[2]][["mapping"]][1]
-# p <- p +
-#   scale_shape_manual(values = c(17, 16)) +
-#   scale_linetype_manual(values = c("dashed", "solid"))
-# p
-# ####
-# 
-# p2 <- ggdid(agg.ct, title = " ", xgap = 4, ylim = c(-5, 5)) +
-#   theme_bc(base_family = "LM Roman 10",
-#            legend.position = "bottom") +
-#   ggtitle(NULL) +
-#   labs(y = "Weekly Registration Count",
-#        x = "Week of Year") +
-#   scale_color_manual(values = c("red"))
-# p2
-# p2[["layers"]][[2]][["geom_params"]]$width <- 0
-# p2[["data"]][["post"]] <- factor(ifelse(p2[["data"]][["post"]] == 0,
-#                                        "Pre-Treatment",
-#                                        "Post-Treatment"),
-#                                 levels = c("Pre-Treatment",
-#                                            "Post-Treatment"))
-# p2
-# 
-# saveRDS(p, "temp/did_length.rds")
-# saveRDS(p2, "temp/did_week.rds")
+
+
+load("temp/aggregates_did.rdata")
+
+p <- ggdid(agg.dy, title = " ", xgap = 4, ylim = c(-5, 5)) +
+  theme_bc(base_family = "LM Roman 10",
+           legend.position = "bottom") +
+  ggtitle(NULL) +
+  labs(y = "Weekly Registration Count",
+       x = "Weeks Since Treatment") +
+  scale_color_manual(values = c("black", "red"))
+p
+p[["layers"]][[2]][["geom_params"]]$width <- 0
+p[["data"]][["post"]] <- factor(ifelse(p[["data"]][["post"]] == 0,
+                                       "Pre-Treatment",
+                                       "Post-Treatment"),
+                                levels = c("Pre-Treatment",
+                                           "Post-Treatment"))
+p[["layers"]][[2]][["mapping"]]["linetype"] <- p[["layers"]][[2]][["mapping"]][1]
+p[["layers"]][[1]][["mapping"]]["shape"] <- p[["layers"]][[2]][["mapping"]][1]
+p <- p +
+  scale_shape_manual(values = c(17, 16)) +
+  scale_linetype_manual(values = c("dashed", "solid"))
+p
+####
+
+p2 <- ggdid(agg.ct, title = " ", ylim = c(-5, 5)) +
+  theme_bc(base_family = "LM Roman 10",
+           legend.position = "bottom") +
+  ggtitle(NULL) +
+  labs(y = "Weekly Registration Count",
+       x = "Weeks Before Deadline") +
+  scale_color_manual(values = c("red")) +
+  scale_x_continuous(labels = -1*seq(-25, -1, 2), breaks = seq(2, 26, 2))
+p2
+p2[["layers"]][[2]][["geom_params"]]$width <- 0
+p2[["data"]][["post"]] <- factor(ifelse(p2[["data"]][["post"]] == 0,
+                                       "Pre-Treatment",
+                                       "Post-Treatment"),
+                                levels = c("Pre-Treatment",
+                                           "Post-Treatment"))
+p2
+
+saveRDS(p, "temp/did_length.rds")
+saveRDS(p2, "temp/did_week.rds")
