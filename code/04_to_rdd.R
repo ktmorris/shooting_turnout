@@ -253,11 +253,11 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
               pv = l$pv,
               p = threshold,
               n = l$N_h[1] + l$N_h[2],
-              bw = l[["bws"]][1])
+              bw = l[["bws"]][1],
+              u = l[["ci"]][,2],
+              l = l[["ci"]][,1])
 }))
 
-out$l <- out$coef - 1.96*out$se
-out$u <- out$coef + 1.96*out$se
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
@@ -309,11 +309,11 @@ out <- rbindlist(lapply(c(1:5), function(x){
   f <- tibble(coef = l$coef,
               se = l$se,
               pv = l$pv,
-              p = x)
+              p = x,
+              u = l[["ci"]][,2],
+              l = l[["ci"]][,1])
 }))
 
-out$l <- out$coef - 1.96*out$se
-out$u <- out$coef + 1.96*out$se
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
@@ -340,11 +340,11 @@ out <- rbindlist(lapply(c(-7:7), function(x){
   f <- tibble(coef = l$coef,
               se = l$se,
               pv = l$pv,
-              p = x)
+              p = x,
+              u = l[["ci"]][,2],
+              l = l[["ci"]][,1])
 }))
 
-out$l <- out$coef - 1.96*out$se
-out$u <- out$coef + 1.96*out$se
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
@@ -462,3 +462,4 @@ demos <- demos %>%
   select(Year, Variable = name, everything())
 
 saveRDS(demos, "temp/demo_table_half_mile.rds")
+

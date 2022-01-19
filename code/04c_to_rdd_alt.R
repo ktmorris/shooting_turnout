@@ -244,15 +244,16 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            se = l9$se, 
            pv = l9$pv,
            p = threshold,
-           t = "Only 2020")
+           t = "Only 2020",
+           u = l[["ci"]][,2],
+           l = l[["ci"]][,1])
   )
 }))
 
 saveRDS(out, "temp/alt_rdds2.rds")
 out <- readRDS("temp/alt_rdds2.rds") %>% 
   filter(t %in% c('Entropy Balancing','OLS','No Adjustment'))
-out$l <- out$coef - 1.96*out$se
-out$u <- out$coef + 1.96*out$se
+
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
@@ -276,8 +277,7 @@ saveRDS(different_dists, "temp/alt_proc_rdd.rds")
 
 out <- readRDS("temp/alt_rdds2.rds") %>% 
   filter(t == "First Difference in Turnout")
-out$l <- out$coef - 1.96*out$se
-out$u <- out$coef + 1.96*out$se
+
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
@@ -300,8 +300,7 @@ out <- readRDS("temp/alt_rdds2.rds") %>%
   filter(t %in% c('Double Bandwidth','Nonpara, 30','Nonpara, 60')) %>% 
   mutate(t = ifelse(t == "Nonpara, 30", "30 Days",
                     ifelse(t == "Nonpara, 60", "60 Days", t)))
-out$l <- out$coef - 1.96*out$se
-out$u <- out$coef + 1.96*out$se
+
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
@@ -325,8 +324,7 @@ saveRDS(different_dists, "temp/alt_bws_rdd.rds")
 
 out <- readRDS("temp/alt_rdds2.rds") %>% 
   filter(t %in% c('Only 2016', 'Only 2020'))
-out$l <- out$coef - 1.96*out$se
-out$u <- out$coef + 1.96*out$se
+
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
@@ -443,11 +441,11 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   f <- tibble(coef = l$coef,
               se = l$se, 
               pv = l$pv,
-              p = threshold)
+              p = threshold,
+              u = l[["ci"]][,2],
+              l = l[["ci"]][,1])
 }))
 
-out$l <- out$coef - 1.96*out$se
-out$u <- out$coef + 1.96*out$se
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)

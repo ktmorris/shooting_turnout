@@ -99,7 +99,9 @@ out <- rbindlist(lapply(c("w", "b", "l"), function(pl){
                 pv = l$pv,
                 p = threshold,
                 n = l$N_h[1] + l$N_h[2],
-                bwidth = l[["bws"]][1])
+                bwidth = l[["bws"]][1],
+                u = l[["ci"]][,2],
+                l = l[["ci"]][,1])
   })) %>% 
     mutate(bw = pl)
 }))
@@ -107,8 +109,6 @@ saveRDS(out, "temp/plu_data.rds")
 out <- readRDS("temp/plu_data.rds")
 
 
-out$l <- out$coef - 1.96*out$se
-out$u <- out$coef + 1.96*out$se
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
@@ -250,7 +250,9 @@ out <- rbindlist(lapply(c("W", "B", "H"), function(r){
                 pv = l$pv,
                 p = threshold,
                 n = l$N_h[1] + l$N_h[2],
-                bwidth = l[["bws"]][1])
+                bwidth = l[["bws"]][1],
+                u = l[["ci"]][,2],
+                l = l[["ci"]][,1])
   })) %>% 
     mutate(bw = r)
 }))
@@ -259,8 +261,6 @@ saveRDS(out, "temp/victim_data.rds")
 
 out <- readRDS("temp/victim_data.rds")
 
-out$l <- out$coef - 1.96*out$se
-out$u <- out$coef + 1.96*out$se
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
