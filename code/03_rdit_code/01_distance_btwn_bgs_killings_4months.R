@@ -14,7 +14,7 @@ shootings_wapo <- fread("raw_data/wapo_shootings.csv") %>%
 
 # read MPV data
 shootings_mapping <- read_xlsx("raw_data/MPVDatasetDownload.xlsx")
-colnames(shootings_mapping) <- clean_names(shootings_mapping)
+colnames(shootings_mapping) <- gsub("[.]", "_", make.unique(make.names(tolower(colnames(shootings_mapping)))))
 
 # rename variables, keep only what's necessary
 shootings_mapping <- shootings_mapping %>%

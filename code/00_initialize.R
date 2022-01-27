@@ -30,7 +30,6 @@ library(lubridate)
 library(rgdal)
 library(tidyverse)
 library(data.table)
-library(kevostools)
 
 ### this is a quick function that allows us to clear memory without losing things we
 ### want to keep from one script to the next
@@ -43,5 +42,3 @@ cleanup <- function(...){
   rm(list=ls(envir = .GlobalEnv)[! ls(envir = .GlobalEnv) %in% save2], envir = .GlobalEnv)
   gc()
 }
-
-source("code/user_functions/clean_names.R")
