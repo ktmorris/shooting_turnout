@@ -1,59 +1,30 @@
 ## read in 2014 BG level turnout
+files <- list.files("temp", pattern = "^14_ballots_by_bg", full.names = T)
 
-ballots_14 <- rbindlist(lapply(unique(filter(fips_codes, state_code <= 56)$state_code), function(s1){
-  s <- unique(filter(fips_codes, state_code == s1)$state)
-  print(s)
-  if(!(file.exists(paste0("../regular_data/bg_turnout/", s, "_bg_to_14.rds")))){
-  j <- bind_rows(
-  l <-  readRDS(paste0("../fees_fines_to/temp/", s, "_to_14_block.rds")) %>%
-      mutate(GEOID = paste0(s1, str_pad(Voters_FIPS, width = 3, side = "left", pad = "0"),
-                            str_pad(Residence_Addresses_CensusTract, width = 6, side = "left", pad = "0"),
-                            Residence_Addresses_CensusBlockGroup)),
-    readRDS(paste0("../fees_fines_to/temp/cleaned_", s, "_2014.rds")) %>%
-     mutate(GEOID = paste0(s1, str_pad(Voters_FIPS, width = 3, side = "left", pad = "0"),
-                           str_pad(Residence_Addresses_CensusTract, width = 6, side = "left", pad = "0"),
-                           Residence_Addresses_CensusBlockGroup)) %>%
-    select(-Voters_FIPS,
-           -Residence_Addresses_CensusTract,
-           -Residence_Addresses_CensusBlockGroup,
-           -Residence_Addresses_CensusBlock)
-  )
-
-  if(s == "HI"){
-    j <- rename(j, General_2014.11.04 = `General_2014-11-04`)
-  }
-
-  j <- j %>%
-    group_by(GEOID) %>%
-    summarize(ballots = sum(General_2014.11.04 == "Y")) %>%
-    mutate(year = "2014")
-
-  saveRDS(j, paste0("../regular_data/bg_turnout/", s, "_bg_to_14.rds"))}
-  else{
-    readRDS(paste0("../regular_data/bg_turnout/", s, "_bg_to_14.rds"))
-  }
-}))
+ballots_14 <- rbindlist(lapply(files, readRDS)) %>%
+  select(GEOID, ballots) %>%
+  mutate(year = "2014")
 
 ## read in 2016 BG level turnout
 files <- list.files("temp", pattern = "^16_ballots_by_bg", full.names = T)
 
 ballots_16 <- rbindlist(lapply(files, readRDS)) %>%
-  select(GEOID, ballots, new) %>%
-  mutate(year = "2016",
-         new = new / ballots)
+  select(GEOID, ballots) %>%
+  mutate(year = "2016")
 
 ## read in 2018 BG level turnout
-ballots_18 <- readRDS("../avr_turnout/temp/full_bg_turnout_18.rds") %>%
-  mutate(year = "2018") %>%
-  select(-voter_count)
+files <- list.files("temp", pattern = "^18_ballots_by_bg", full.names = T)
+
+ballots_18 <- rbindlist(lapply(files, readRDS)) %>%
+  select(GEOID, ballots) %>%
+  mutate(year = "2018")
 
 ## read in 2020 BG level turnout
 files <- list.files("temp", pattern = "^ballots_by_bg", full.names = T)
 
 ballots_20 <- rbindlist(lapply(files, readRDS)) %>%
-  select(GEOID, ballots, new) %>%
-  mutate(year = "2020",
-         new = new / ballots)
+  select(GEOID, ballots) %>%
+  mutate(year = "2020")
 
 ## combine all years' turnout in long format
 ballots <- bind_rows(ballots_14, ballots_16, ballots_18, ballots_20)
