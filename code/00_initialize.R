@@ -44,3 +44,4 @@ cleanup <- function(...){
   gc()
 }
 
+source("code/user_functions/clean_names.R")

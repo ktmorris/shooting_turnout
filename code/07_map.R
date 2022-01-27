@@ -1,8 +1,8 @@
-
+## pull state shapefiles with tigris
 state_map <- states(cb = T) %>% 
   filter(STATEFP <= "56",
          )
-
+## shift HI and AK
 state_map <- shift_geometry(state_map)
 
 state_map <- as_Spatial(state_map)
@@ -12,13 +12,13 @@ state_map <- spTransform(state_map, "+proj=longlat +datum=NAD83 +no_defs")
 state_map <- fortify(state_map)
 
 ###################################
-
+## read killings data
 full_set <- readRDS("temp/geocoded_shootings.rds") %>% 
   ungroup() %>% 
   mutate(id2 = row_number(),
          score = ifelse(is.na(score), 100, as.numeric(score))) %>% 
   filter(score > 95)
-
+## keep killings within 2 months of 2016, 2020 election
 pre_post <- filter(full_set,
                    (date >= as.Date("2020-11-03") - months(2) &
                         date < as.Date("2020-11-03") + months(2)) |
@@ -44,6 +44,7 @@ pre_post$pre <- ifelse(pre_post$pre,
                        "After Election")
 pre_post$pre <- factor(pre_post$pre, levels = c("Before Election", "After Election"))
 
+##create figure 1
 t <- ggplot() +
   geom_path(data = filter(state_map,
                           long > -130), mapping = aes(x = long, y = lat, group = group)) +
@@ -68,7 +69,7 @@ t +
 saveRDS(t, "temp/map.rds")
 
 ggsave("temp/map.png")
-
+## create figure A1
 t <- ggplot() +
   geom_path(data = filter(state_map,
                           long > -130), mapping = aes(x = long, y = lat, group = group)) +

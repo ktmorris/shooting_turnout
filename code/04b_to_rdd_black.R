@@ -1,3 +1,5 @@
+
+### read in data saved previously
 dists <- readRDS("temp/shooting_demos.rds") %>% 
   mutate(turnout_pre = ifelse(year == "2016", turnout_14, turnout_18))
 
@@ -29,6 +31,10 @@ dists <- left_join(dists, readRDS("temp/geocoded_shootings.rds") %>%
 ###################################################################
 ###################################################################
 ###################################################################
+## loop over thresholds for different plurality neighborhoods
+
+## the logic in this file follows that of the previous one; less commenting is hence given here
+
 out <- rbindlist(lapply(c("w", "b", "l"), function(pl){
   rbindlist(lapply(c(seq(0.35, 1, 0.05), seq(2, 10, 1)), function(threshold){
     t2 <- 0
@@ -84,8 +90,6 @@ out <- rbindlist(lapply(c("w", "b", "l"), function(pl){
                                                    latino, nh_white, asian, nh_black, median_income, median_age,
                                                    pop_dens, turnout_pre)), ]
     
-    ########################
-   
     ########################################
     
     l <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
@@ -118,7 +122,7 @@ out <- mutate(out,
               bw = ifelse(bw == "b", "Plurality Black",
                           ifelse(bw == "l", "Plurality Latinx",
                                  "Plurality White")))
-
+# Create Figure 4A 
 different_dists1 <- ggplot(filter(out, p <= 1),
                           aes(x = p, y = coef, ymin = l, ymax = u)) +
   facet_grid(~bw) +
@@ -133,6 +137,7 @@ different_dists1
 
 saveRDS(different_dists1, "temp/plurality_nhood.rds")
 
+# create figure 4B
 different_dists2 <- ggplot(filter(out, p >= 1, bw == "Plurality Black"),
                            aes(x = p, y = coef, ymin = l, ymax = u)) +
   geom_point() +
@@ -147,6 +152,7 @@ Plurality-Black Block Groups")
   
 different_dists2
 
+# create figure A5A
 different_dists1b <- ggplot(filter(out, p <= 1),
                            aes(x = p, y = n)) +
   facet_grid(~bw) +
@@ -159,6 +165,8 @@ different_dists1b <- ggplot(filter(out, p <= 1),
   labs(y = "Effective Sample Size", x = "Radius Around Shooting (Miles)") +
   ggtitle("(a) By Block Group Racial Composition")
 different_dists1b
+
+#create figure A5B
 different_dists2b <- ggplot(filter(out, p >= 1, bw == "Plurality Black"),
                            aes(x = p, y = n)) +
   geom_point() +
@@ -179,7 +187,7 @@ different_dists2b
 ###################################################################
 ###################################################################
 ###################################################################
-
+### now loop over victim race
 out <- rbindlist(lapply(c("W", "B", "H"), function(r){
   rbindlist(lapply(c(seq(0.35, 1, 0.05), seq(2, 10, 1)), function(threshold){
     t2 <- 0
@@ -270,7 +278,7 @@ out <- mutate(out,
               bw = ifelse(bw == "B", "Black Victim",
                           ifelse(bw == "H", "Latinx Victim",
                                  "White Victim")))
-
+#create figure 4C 
 different_dists3 <- ggplot(filter(out, p <= 1),
                           aes(x = p, y = coef, ymin = l, ymax = u)) +
   facet_grid(~bw) +
@@ -284,7 +292,7 @@ different_dists3 <- ggplot(filter(out, p <= 1),
 different_dists3
 
 saveRDS(different_dists3, "temp/victim_race.rds")
-
+## create figure 4D
 different_dists4 <- ggplot(filter(out, p >= 1, bw == "Black Victim"),
                            aes(x = p, y = coef, ymin = l, ymax = u)) +
   geom_point() +
@@ -299,7 +307,7 @@ Black Victims")
 different_dists4
 
 
-
+#Create figure 4
 p <- plot_grid(different_dists1, different_dists2, different_dists3, different_dists4,
           label_size = 12, rel_widths = c(3, 2),
           label_fontfamily = "LM Roman 10")
@@ -307,7 +315,7 @@ p
 saveRDS(p, "temp/all_plots.rds")
 
 #######################
-
+#create figure A5C
 different_dists3b <- ggplot(filter(out, p <= 1),
                            aes(x = p, y = n)) +
   facet_grid(~bw) +
@@ -321,6 +329,7 @@ different_dists3b <- ggplot(filter(out, p <= 1),
   ggtitle("(c) By Victim Race")
 different_dists3b
 
+#create Figure A5D
 different_dists4b <- ggplot(filter(out, p >= 1, bw == "Black Victim"),
                            aes(x = p, y = n)) +
   geom_point() +
@@ -335,7 +344,7 @@ different_dists4b <- ggplot(filter(out, p >= 1, bw == "Black Victim"),
 Black Victims")
 different_dists4b
 
-
+# create figure A5
 p <- plot_grid(different_dists1b, different_dists2b, different_dists3b, different_dists4b,
                label_size = 12, rel_widths = c(3, 2),
                label_fontfamily = "LM Roman 10")

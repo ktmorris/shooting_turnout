@@ -1,3 +1,6 @@
+## these functions assume that the raw L2 post-2016 voter files are in a SQL database
+## dc's file is funky so needs to be done separately
+
 db <- dbConnect(SQLite(), "D:/national_file_post16.db")
 tabs <- dbListTables(db)
 
@@ -8,6 +11,7 @@ bg_ballots <- lapply(tabs, function(s){
     print(paste0("Processing ", s))
     code_good <- unique(filter(fips_codes, state == s)$state_code)
     if(s %in% c("DC")){
+      ## pull data, clean names, etc
       tt <- dbGetQuery(db, paste0("select LALVOTERID,
                                          Residence_Addresses_CensusTract,
                                          Residence_Addresses_CensusBlockGroup,
@@ -19,18 +23,18 @@ bg_ballots <- lapply(tabs, function(s){
                                 from [", s, "]"))
       colnames(tt) <- gsub("-", "_", colnames(tt))
       colnames(tt) <- gsub("'", "", colnames(tt))
+      
       tt <- tt %>%
+        ## take separate county, tract, and block group codes and combine to single GEOID
         mutate(GEOID = paste0(code_good, str_pad(Voters_FIPS, width = 3, side = "left", pad = "0"),
                               str_pad(Residence_Addresses_CensusTract, width = 6, side = "left", pad = "0"),
                               Residence_Addresses_CensusBlockGroup)) %>%
-        mutate(across(starts_with("General"), ~ ifelse(is.na(.) | . == "", "N", .)),
-               new = General_2016_11_08 != "N" &
-                 General_2008_11_04 == "N" & General_2014_11_04 == "N" &
-                 General_2012_11_06 == "N") %>% 
+        ## if turnout flag is missing or empty, make it equal to "N" for "NO"
+        mutate(across(starts_with("General"), ~ ifelse(is.na(.) | . == "", "N", .))) %>% 
         group_by(GEOID) %>%
+        ## sum ballots cast by each BG
         summarize(ballots = sum(General_2016_11_08 != "N"),
-                  voters = n(),
-                  new = sum(new))
+                  voters = n())
     }else{
       tt <- dbGetQuery(db, paste0("select LALVOTERID,
                                          Residence_Addresses_CensusTract,

@@ -1,3 +1,6 @@
+## these functions assume that the raw L2 post-2020 voter files are in SQL databases 
+## (one for file, one for history)
+
 db <- dbConnect(SQLite(), "D:/national_file_post20.db")
 tabs <- dbListTables(db)
 
@@ -9,28 +12,28 @@ bg_ballots <- lapply(tabs, function(s){
   }else{
     print(paste0("Processing ", s))
     code_good <- unique(filter(fips_codes, state == s)$state_code)
+    ## pull data
     tt <- dbGetQuery(db, paste0("select LALVOTERID,
                                          Residence_Addresses_CensusTract,
                                          Residence_Addresses_CensusBlockGroup,
                                          Parties_Description,
                                          Voters_FIPS from [", s, "]")) %>%
+      ## take separate county, tract, and block group codes and combine to single GEOID
       mutate(GEOID = paste0(code_good, str_pad(Voters_FIPS, width = 3, side = "left", pad = "0"),
                             str_pad(Residence_Addresses_CensusTract, width = 6, side = "left", pad = "0"),
                             Residence_Addresses_CensusBlockGroup)) %>%
       select(LALVOTERID, GEOID, Parties_Description)
-
+    
+    ## pull voter history data
     hist <- dbGetQuery(db_hist, paste0("select * from ", s, "_history_20")) %>% 
-      mutate(across(starts_with("General"), ~ ifelse(is.na(.) | . == "", "N", .)),
-             new = General_2020_11_03 != "N" &
-               General_2018_11_06 == "N" & General_2016_11_08 == "N" & General_2014_11_04 == "N" &
-               General_2012_11_06 == "N" & General_2010_11_02 == "N")
-
+      mutate(across(starts_with("General"), ~ ifelse(is.na(.) | . == "", "N", .)))
+    
+    ## merge file and history
     tt <- left_join(tt, hist) %>%
       group_by(GEOID) %>%
       summarize(ballots = sum(General_2020_11_03 != "N"),
-                voters = n(),
-                new = sum(new))
-
+                voters = n())
+    
     saveRDS(tt, paste0("temp/ballots_by_bg_", s, ".rds"))
   }
 })
