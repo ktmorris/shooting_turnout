@@ -16,13 +16,12 @@ bg_ballots <- lapply(tabs, function(s){
     tt <- dbGetQuery(db, paste0("select LALVOTERID,
                                          Residence_Addresses_CensusTract,
                                          Residence_Addresses_CensusBlockGroup,
-                                         Parties_Description,
                                          Voters_FIPS from [", s, "]")) %>%
       ## take separate county, tract, and block group codes and combine to single GEOID
       mutate(GEOID = paste0(code_good, str_pad(Voters_FIPS, width = 3, side = "left", pad = "0"),
                             str_pad(Residence_Addresses_CensusTract, width = 6, side = "left", pad = "0"),
                             Residence_Addresses_CensusBlockGroup)) %>%
-      select(LALVOTERID, GEOID, Parties_Description)
+      select(LALVOTERID, GEOID)
     
     ## pull voter history data
     hist <- dbGetQuery(db_hist, paste0("select * from ", s, "_history_20")) %>% 
