@@ -1,7 +1,6 @@
 
 ### read in data saved previously
-dists <- readRDS("temp/shooting_demos.rds") %>% 
-  mutate(turnout_pre = ifelse(year == "2016", turnout_14, turnout_18))
+dists <- readRDS("temp/shooting_demos.rds")
 
 dists <- left_join(dists, readRDS("temp/geocoded_shootings.rds") %>% 
                      ungroup() %>% 
@@ -47,7 +46,7 @@ out <- rbindlist(lapply(c("w", "b", "l"), function(pl){
                plu == pl) %>% 
         select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
                median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-               turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
+               some_college, turnout_pre) %>% 
         mutate(treated = T,
                d2 = as.integer(date - as.Date("2020-11-03"))),
       dists %>% 
@@ -57,7 +56,7 @@ out <- rbindlist(lapply(c("w", "b", "l"), function(pl){
                plu == pl) %>% 
         select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
                median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-               turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
+               some_college, turnout_pre) %>% 
         mutate(treated = F,
                d2 = as.integer(date - as.Date("2020-11-03"))),
       dists %>% 
@@ -68,7 +67,7 @@ out <- rbindlist(lapply(c("w", "b", "l"), function(pl){
                plu == pl) %>% 
         select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
                median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-               turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
+               some_college, turnout_pre) %>% 
         mutate(treated = T,
                d2 = as.integer(date - as.Date("2016-11-08"))),
       dists %>% 
@@ -78,17 +77,16 @@ out <- rbindlist(lapply(c("w", "b", "l"), function(pl){
                plu == pl) %>% 
         select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
                median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-               turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
+               some_college, turnout_pre) %>% 
         mutate(treated = F,
                d2 = as.integer(date - as.Date("2016-11-08")))
     ) %>% 
-      mutate(year = as.integer(year),
-             t16 = year == 1)
+      mutate(t16 = year == "2016")
     
     
     full_treat <- full_treat[complete.cases(select(full_treat,
                                                    latino, nh_white, asian, nh_black, median_income, median_age,
-                                                   pop_dens, turnout_pre)), ]
+                                                   pop_dens, turnout_pre, some_college)), ]
     
     ########################################
     
@@ -96,7 +94,7 @@ out <- rbindlist(lapply(c("w", "b", "l"), function(pl){
                   covs = select(full_treat,
                                 latino, nh_white, asian,
                                 nh_black, median_income, median_age,
-                                pop_dens, turnout_pre, t16))
+                                pop_dens, turnout_pre, t16, some_college))
     
     f <- tibble(coef = l$coef,
                 se = l$se, 
@@ -199,7 +197,7 @@ out <- rbindlist(lapply(c("W", "B", "H"), function(r){
                dist_post > threshold) %>% 
         select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
                median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-               turnout_16, turnout_18, turnout_14, turnout_pre, new,
+               some_college, turnout_pre,
                race = race_pre) %>% 
         mutate(treated = T,
                d2 = as.integer(date - as.Date("2020-11-03"))),
@@ -209,7 +207,7 @@ out <- rbindlist(lapply(c("W", "B", "H"), function(r){
                dist_post <= threshold) %>% 
         select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
                median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-               turnout_16, turnout_18, turnout_14, turnout_pre, new,
+               some_college, turnout_pre,
                race = race_post) %>% 
         mutate(treated = F,
                d2 = as.integer(date - as.Date("2020-11-03"))),
@@ -220,7 +218,7 @@ out <- rbindlist(lapply(c("W", "B", "H"), function(r){
                dist_post > threshold) %>% 
         select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
                median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-               turnout_16, turnout_18, turnout_14, turnout_pre, new,
+               some_college, turnout_pre,
                race = race_pre) %>% 
         mutate(treated = T,
                d2 = as.integer(date - as.Date("2016-11-08"))),
@@ -230,19 +228,18 @@ out <- rbindlist(lapply(c("W", "B", "H"), function(r){
                dist_post <= threshold) %>% 
         select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
                median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-               turnout_16, turnout_18, turnout_14, turnout_pre, new,
+               some_college, turnout_pre,
                race = race_post) %>% 
         mutate(treated = F,
                d2 = as.integer(date - as.Date("2016-11-08")))
     ) %>% 
-      mutate(year = as.integer(year),
-             t16 = year == 1) %>% 
+      mutate(t16 = year == "2016") %>% 
       filter(race == r)
     
     
     full_treat <- full_treat[complete.cases(select(full_treat,
                                                    latino, nh_white, asian, nh_black, median_income, median_age,
-                                                   pop_dens, turnout_pre)), ]
+                                                   pop_dens, turnout_pre, some_college)), ]
     
     
     ########################################
@@ -251,7 +248,7 @@ out <- rbindlist(lapply(c("W", "B", "H"), function(r){
                   covs = select(full_treat,
                                 latino, nh_white, asian,
                                 nh_black, median_income, median_age,
-                                pop_dens, turnout_pre, t16))
+                                pop_dens, turnout_pre, t16, some_college))
     
     f <- tibble(coef = l$coef,
                 se = l$se, 
