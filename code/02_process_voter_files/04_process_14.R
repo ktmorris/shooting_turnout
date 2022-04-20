@@ -9,7 +9,7 @@
 files <- list.files("D:/national/post_2014", full.names = T, pattern = "*.zip")
 
 db14 <- dbConnect(SQLite(), "D:/national_file_post14.db")
-db18 <- dbConnect(SQLite(), "D:/national_file.db")
+db18 <- dbConnect(SQLite(), "D:/national_file_post18.db")
 
 for(f in files){
   f2 <- substring(f, 1, nchar(f) - 4)
@@ -22,7 +22,7 @@ for(f in files){
   }
   
   l <- list.files(f2, full.names = T, pattern = "*.tab")
-  k <- fread(l, sep = "\t",
+  k <- fread(l,
              select = c("LALVOTERID", "Voters_FIPS",
                         "Residence_Addresses_AddressLine", 
                         "Residence_Addresses_ExtraAddressLine", 
@@ -85,7 +85,7 @@ bg_ballots <- lapply(tabs, function(s){
     code_good <- unique(filter(fips_codes, state == s)$state_code)
     
     ## pull data, clean names, etc
-    tt <- dbGetQuery(db, paste0("select Residence_Addresses_CensusTract,
+    tt <- dbGetQuery(db14, paste0("select Residence_Addresses_CensusTract,
                                         Residence_Addresses_CensusBlockGroup,
                                         Voters_FIPS,
                                          [General_2014-11-04]
