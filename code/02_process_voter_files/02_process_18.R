@@ -7,16 +7,21 @@ tabs <- tabs[tabs != "CA_032020"]
 for(f in tabs){
   print(f)
   scode <- filter(fips_codes, state == f)[1, "state_code"]
-  if(!file.exists(paste0("temp/", f, "_bgs_ballots_18.rds"))){
+  if(!file.exists(paste0("temp/18_ballots_by_bg_", f, ".rds"))){
     k <- dbGetQuery(db, paste0("select LALVOTERID,
-                                         Residence_Addresses_CensusTract,
-                                         Residence_Addresses_CensusBlockGroup,
-                                         Voters_FIPS from [", f, "]")) %>%
-      ## take separate county, tract, and block group codes and combine to single GEOID
-      mutate(GEOID = paste0(code_good, str_pad(Voters_FIPS, width = 3, side = "left", pad = "0"),
-                            str_pad(Residence_Addresses_CensusTract, width = 6, side = "left", pad = "0"),
-                            Residence_Addresses_CensusBlockGroup)) %>%
-      select(LALVOTERID, GEOID)
+                                         Residence_Addresses_Latitude,
+                                         Residence_Addresses_Longitude from [", f, "]")) %>% 
+      mutate(across(starts_with("Residence"), as.numeric)) %>% 
+      filter(!is.na(Residence_Addresses_Longitude))
+    
+    bgs <- block_groups(state = f, year = 2020, class = "sp")
+    
+    pings  <- SpatialPoints(k[,c('Residence_Addresses_Longitude','Residence_Addresses_Latitude')],
+                            proj4string = bgs@proj4string)
+    
+    k$GEOID <- over(pings, bgs)$GEOID
+    
+    k <- select(k, LALVOTERID, GEOID)
     
     h <- dbGetQuery(dbh, paste0("select LALVOTERID, General_2018_11_06 from ", f, "_history_18")) %>% 
       mutate(across(starts_with("General"), ~ ifelse(is.na(.) | . == "", "N", .)))

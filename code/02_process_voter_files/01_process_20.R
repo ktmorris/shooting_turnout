@@ -14,14 +14,20 @@ bg_ballots <- lapply(tabs, function(s){
     code_good <- unique(filter(fips_codes, state == s)$state_code)
     ## pull data
     tt <- dbGetQuery(db, paste0("select LALVOTERID,
-                                         Residence_Addresses_CensusTract,
-                                         Residence_Addresses_CensusBlockGroup,
-                                         Voters_FIPS from [", s, "]")) %>%
-      ## take separate county, tract, and block group codes and combine to single GEOID
-      mutate(GEOID = paste0(code_good, str_pad(Voters_FIPS, width = 3, side = "left", pad = "0"),
-                            str_pad(Residence_Addresses_CensusTract, width = 6, side = "left", pad = "0"),
-                            Residence_Addresses_CensusBlockGroup)) %>%
-      select(LALVOTERID, GEOID)
+                                         Residence_Addresses_Latitude,
+                                         Residence_Addresses_Longitude from [", s, "]")) %>% 
+      mutate(across(starts_with("Residence"), as.numeric)) %>% 
+      filter(!is.na(Residence_Addresses_Longitude))
+    
+    bgs <- block_groups(state = s, year = 2020, class = "sp")
+    
+    pings  <- SpatialPoints(tt[,c('Residence_Addresses_Longitude','Residence_Addresses_Latitude')],
+                            proj4string = bgs@proj4string)
+    
+    tt$GEOID <- over(pings, bgs)$GEOID
+    
+    tt <- select(tt, LALVOTERID, GEOID)
+      
     
     ## pull voter history data
     hist <- dbGetQuery(db_hist, paste0("select * from ", s, "_history_20")) %>% 
