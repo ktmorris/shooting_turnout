@@ -136,8 +136,8 @@ find_closest <- function(bg_data_f, centroids_f, d, type){
 
 for(s in unique(filter(fips_codes, state_code <= 56)$state_code)){
   print(s)
-  ## download block group shapefile data using tigris package 
-  bgs <- block_groups(state = s, class = "sp", year = 2017)
+  ## download block group shapefile data using tigris package for 2016
+  bgs <- block_groups(state = s, class = "sp", year = 2016)
   
   ## turn centroids into spatial points
   centroids <- SpatialPoints(
@@ -150,35 +150,47 @@ for(s in unique(filter(fips_codes, state_code <= 56)$state_code)){
   
   #########################################
   ## run user defined function to find closest killing in 2 months before and after 2016, 2018, 2020 elections
-  bg_data$dist_pre_16 <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "pre")$dist
-  bg_data$dist_post_16 <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "post")$dist
+  bg_data$dist_pre <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "pre")$dist
+  bg_data$dist_post <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "post")$dist
   
-  bg_data$dist_pre_18 <- find_closest(bg_data, centroids_f = centroids, d = "2018-11-06", type = "pre")$dist
-  bg_data$dist_post_18 <- find_closest(bg_data, centroids_f = centroids, d = "2018-11-06", type = "post")$dist
+  bg_data$date_pre <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "pre")$date
+  bg_data$date_post <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "post")$date
   
-  bg_data$dist_pre_20 <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "pre")$dist
-  bg_data$dist_post_20 <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "post")$dist
+  bg_data$id_pre <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "pre")$id
+  bg_data$id_post <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "post")$id
   
-  bg_data$date_pre_16 <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "pre")$date
-  bg_data$date_post_16 <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "post")$date
+  bg_data_16 <- select(bg_data, GEOID, starts_with("dist_"), starts_with("date_"), starts_with("id_p")) %>% 
+    mutate(year = 2016)
   
-  bg_data$date_pre_18 <- find_closest(bg_data, centroids_f = centroids, d = "2018-11-06", type = "pre")$date
-  bg_data$date_post_18 <- find_closest(bg_data, centroids_f = centroids, d = "2018-11-06", type = "post")$date
+  ##########################
+  ## download block group shapefile data using tigris package for 2020
+  bgs <- block_groups(state = s, class = "sp", year = 2020)
   
-  bg_data$date_pre_20 <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "pre")$date
-  bg_data$date_post_20 <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "post")$date
+  ## turn centroids into spatial points
+  centroids <- SpatialPoints(
+    data.table(x = as.numeric(bgs@data$INTPTLON), y = as.numeric(bgs@data$INTPTLAT))
+  )
   
-  bg_data$id_pre_16 <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "pre")$id
-  bg_data$id_post_16 <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "post")$id
   
-  bg_data$id_pre_18 <- find_closest(bg_data, centroids_f = centroids, d = "2018-11-06", type = "pre")$id
-  bg_data$id_post_18 <- find_closest(bg_data, centroids_f = centroids, d = "2018-11-06", type = "post")$id
+  bg_data <- bgs@data %>% 
+    mutate_at(vars(INTPTLON, INTPTLAT), as.numeric)
   
-  bg_data$id_pre_20 <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "pre")$id
-  bg_data$id_post_20 <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "post")$id
+  #########################################
+  ## run user defined function to find closest killing in 2 months before and after 2016, 2018, 2020 elections
+  bg_data$dist_pre <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "pre")$dist
+  bg_data$dist_post <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "post")$dist
   
-  bg_data <- select(bg_data, GEOID, starts_with("dist_"), starts_with("date_"), starts_with("id_p"))
+  bg_data$date_pre <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "pre")$date
+  bg_data$date_post <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "post")$date
   
+  bg_data$id_pre <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "pre")$id
+  bg_data$id_post <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "post")$id
+  
+  bg_data_20 <- select(bg_data, GEOID, starts_with("dist_"), starts_with("date_"), starts_with("id_p")) %>% 
+    mutate(year = 2020)
+  
+  
+  bg_data <- bind_rows(bg_data_16, bg_data_20)
   saveRDS(bg_data, paste0("temp/bgs_", s, ".rds"))
 }
 
@@ -186,34 +198,4 @@ files <- list.files(path = "temp/", pattern = "^bgs_[0-9][0-9].rds", full.names 
 
 all_bgs <- rbindlist(lapply(files, readRDS))
 
-saveRDS(all_bgs, "temp/all_bgs_dist_shooting.rds")
-
-### reshape these into a long format
-
-dists1 <- readRDS("temp/all_bgs_dist_shooting.rds") %>% 
-  select(GEOID, starts_with("dist_")) %>% 
-  pivot_longer(cols = c(starts_with("dist_")), names_to = "year", names_prefix = "dist_",
-               values_to = "dist") %>% 
-  separate(year, into = c("type", "year"), sep = "_") %>% 
-  pivot_wider(id_cols = c(GEOID, year), names_from = "type", values_from = "dist", names_prefix = "dist_") %>% 
-  mutate(year = paste0("20", year))
-
-dists2 <- readRDS("temp/all_bgs_dist_shooting.rds") %>% 
-  select(GEOID, starts_with("date_")) %>% 
-  pivot_longer(cols = c(starts_with("date_")), names_to = "year", names_prefix = "date_",
-               values_to = "dist") %>% 
-  separate(year, into = c("type", "year"), sep = "_") %>% 
-  pivot_wider(id_cols = c(GEOID, year), names_from = "type", values_from = "dist", names_prefix = "date_") %>% 
-  mutate(year = paste0("20", year))
-
-dists3 <- readRDS("temp/all_bgs_dist_shooting.rds") %>% 
-  select(GEOID, starts_with("id_")) %>% 
-  pivot_longer(cols = c(starts_with("id_")), names_to = "year", names_prefix = "id_",
-               values_to = "dist") %>% 
-  separate(year, into = c("type", "year"), sep = "_") %>% 
-  pivot_wider(id_cols = c(GEOID, year), names_from = "type", values_from = "dist", names_prefix = "id_") %>% 
-  mutate(year = paste0("20", year))
-
-dists <- full_join(dists1, full_join(dists2, dists3))
-
-saveRDS(dists, "temp/dists_long.rds")
+saveRDS(all_bgs, "temp/dists_long.rds")
