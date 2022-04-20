@@ -211,7 +211,7 @@ census_education <- function(geo, year, state = NULL, county = NULL){
                                      "B15002_015",
                                      "B15002_016",
                                      "B15002_017",
-                                     "B15002_028",
+                                     "B15002_018",
                                      "B15002_029",
                                      "B15002_030",
                                      "B15002_031",
