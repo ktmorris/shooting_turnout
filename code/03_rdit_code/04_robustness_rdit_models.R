@@ -1,7 +1,6 @@
 
 ## read in primary data
-dists <- readRDS("temp/shooting_demos.rds") %>% 
-  mutate(turnout_pre = ifelse(year == "2016", turnout_14, turnout_18))
+dists <- readRDS("temp/shooting_demos.rds")
 
 ## loop over thresholds
 out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
@@ -14,7 +13,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
              dist_post > threshold) %>% 
       select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
              median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
+             turnout_pre, some_college) %>% 
       mutate(treated = T,
              d2 = as.integer(date - as.Date("2020-11-03"))),
     dists %>% 
@@ -23,7 +22,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
              dist_post <= threshold) %>% 
       select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
              median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
+             turnout_pre, some_college) %>% 
       mutate(treated = F,
              d2 = as.integer(date - as.Date("2020-11-03"))),
     dists %>% 
@@ -33,7 +32,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
              dist_post > threshold) %>% 
       select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
              median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
+             turnout_pre, some_college) %>% 
       mutate(treated = T,
              d2 = as.integer(date - as.Date("2016-11-08"))),
     dists %>% 
@@ -42,26 +41,25 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
              dist_post <= threshold) %>% 
       select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
              median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_16, turnout_18, turnout_14, turnout_pre, new) %>% 
+             turnout_pre, some_college) %>% 
       mutate(treated = F,
              d2 = as.integer(date - as.Date("2016-11-08")))
   ) %>% 
-    mutate(year = as.integer(year),
-           t16 = year == 1)
+    mutate(t16 = year == "2016")
   
   
   full_treat <- full_treat[complete.cases(select(full_treat,
                                                  latino, nh_white, asian, nh_black, median_income, median_age,
-                                                 pop_dens, turnout_pre)), ]
+                                                 pop_dens, turnout_pre, some_college)), ]
   
   ########################
   ## balance within 2016
-  d16 <- filter(full_treat, year == 1)
+  d16 <- filter(full_treat, year == "2016")
   
   mb <- ebalance(d16$treated,
                  select(d16,
                         nh_black, latino, nh_white, asian, median_income, median_age,
-                        pop_dens, turnout_pre))
+                        pop_dens, turnout_pre, some_college))
   
   d16 <- bind_rows(
     filter(d16, treated) %>%
@@ -71,12 +69,12 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   )
   
   # balance within 2020
-  d20 <- filter(full_treat, year == 3)
+  d20 <- filter(full_treat, year == "2020")
   
   mb <- ebalance(d20$treated,
                  select(d20,
                         nh_black, latino, nh_white, asian, median_income, median_age,
-                        pop_dens, turnout_pre))
+                        pop_dens, turnout_pre, some_college))
   
   d20 <- bind_rows(
     filter(d20, treated) %>%
@@ -89,12 +87,12 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   
   ########################################
   ## redo the balancing without prior turnout for first-differencing models
-  d16 <- filter(full_treat, year == 1)
+  d16 <- filter(full_treat, year == "2016")
   
   mb <- ebalance(d16$treated,
                  select(d16,
                         nh_black, latino, nh_white, asian, median_income, median_age,
-                        pop_dens))
+                        pop_dens, some_college))
   
   d16 <- bind_rows(
     filter(d16, treated) %>%
@@ -103,12 +101,12 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
       mutate(weight2 = mb$w)
   )
   
-  d20 <- filter(full_treat, year == 3)
+  d20 <- filter(full_treat, year == "2020")
   
   mb <- ebalance(d20$treated,
                  select(d20,
                         nh_black, latino, nh_white, asian, median_income, median_age,
-                        pop_dens))
+                        pop_dens, some_college))
   
   d20 <- bind_rows(
     filter(d20, treated) %>%
@@ -129,7 +127,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                 covs = select(full_treat,
                               latino, nh_white, asian,
                               nh_black, median_income, median_age,
-                              pop_dens, turnout_pre, t16))
+                              pop_dens, turnout_pre, t16, some_college))
   
   ## rdit without OLS adjustments
   l2 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
@@ -144,7 +142,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                 covs = select(full_treat,
                               latino, nh_white, asian,
                               nh_black, median_income, median_age,
-                              pop_dens, t16))
+                              pop_dens, t16, some_college))
   
   ## grab nonparametric bandwidth for alternate specifications
   bw <- rdbwselect(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
@@ -152,7 +150,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                    covs = select(full_treat,
                                  latino, nh_white, asian,
                                  nh_black, median_income, median_age,
-                                 pop_dens, turnout_pre, t16))
+                                 pop_dens, turnout_pre, t16, some_college))
   
   ## rdit using double the nonparametric bandwidth
   l5 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
@@ -160,87 +158,95 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                  covs = select(full_treat,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre, t16), h = bw[["bws"]][1]*2)
+                               pop_dens, turnout_pre, t16, some_college), h = bw[["bws"]][1]*2)
   ## rdit using nonparametric bandwidth on treated side, 30 days on untreated side
   l6 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                  weights = full_treat$weight,
                  covs = select(full_treat,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre, t16), h = c(bw[["bws"]][1], 30))
+                               pop_dens, turnout_pre, t16, some_college), h = c(bw[["bws"]][1], 30))
   ## rdit using nonparametric bandwidth on treated side, 60 days on untreated side
   l7 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                  weights = full_treat$weight,
                  covs = select(full_treat,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre, t16), h = c(bw[["bws"]][1], 60))
+                               pop_dens, turnout_pre, t16, some_college), h = c(bw[["bws"]][1], 60))
   ## keep only the 2016 data
-  o16 <- filter(full_treat, year == 1)
+  o16 <- filter(full_treat, year == "2016")
   ## rdit on 2016 data alone
   l8 <- rdrobust(y = o16$turnout, x = o16$d2, p = 1, c = 0, cluster = o16$id,
                  weights = o16$weight,
                  covs = select(o16,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre))
+                               pop_dens, turnout_pre, some_college))
   ##keep only the 2020 data
-  o20 <- filter(full_treat, year != 1)
+  o20 <- filter(full_treat, year != "2016")
   #rdit on 2020 alone
   l9 <- rdrobust(y = o20$turnout, x = o20$d2, p = 1, c = 0, cluster = o20$id,
                  weights = o20$weight,
                  covs = select(o20,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre))
+                               pop_dens, turnout_pre, some_college))
   
   ## combine results of all these models
   f <- bind_rows(
     tibble(coef = l$coef,
            se = l$se, 
            pv = l$pv,
+           p = threshold,
            t = "OLS",
            u = l[["ci"]][,2],
            l = l[["ci"]][,1]),
     tibble(coef = l2$coef,
            se = l2$se, 
            pv = l2$pv,
+           p = threshold,
            t = "Entropy Balancing",
            u = l2[["ci"]][,2],
            l = l2[["ci"]][,1]),
     tibble(coef = l3$coef,
            se = l3$se, 
            pv = l3$pv,
+           p = threshold,
            t = "No Adjustment",
            u = l3[["ci"]][,2],
            l = l3[["ci"]][,1]),
     tibble(coef = l4$coef,
            se = l4$se, 
            pv = l4$pv,
+           p = threshold,
            t = "First Difference in Turnout",
            u = l4[["ci"]][,2],
            l = l4[["ci"]][,1]),
     tibble(coef = l5$coef,
            se = l5$se, 
            pv = l5$pv,
+           p = threshold,
            t = "Double Bandwidth",
            u = l5[["ci"]][,2],
            l = l5[["ci"]][,1]),
     tibble(coef = l6$coef,
            se = l6$se, 
            pv = l6$pv,
+           p = threshold,
            t = "Nonpara, 30",
            u = l6[["ci"]][,2],
            l = l6[["ci"]][,1]),
     tibble(coef = l7$coef,
            se = l7$se, 
            pv = l7$pv,
+           p = threshold,
            t = "Nonpara, 60",
            u = l7[["ci"]][,2],
            l = l7[["ci"]][,1]),
     tibble(coef = l8$coef,
            se = l8$se, 
            pv = l8$pv,
+           p = threshold,
            t = "Only 2016",
            u = l8[["ci"]][,2],
            l = l8[["ci"]][,1]),
