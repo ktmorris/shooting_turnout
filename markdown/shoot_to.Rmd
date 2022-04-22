@@ -63,23 +63,22 @@ print(readRDS("./temp/placebos.rds") + theme(text = element_text(size = 15)))
 print(readRDS("temp/alt_bws_rdd.rds") + theme(text = element_text(size = 15)))
 ```
 
+```{r bws-2, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5.5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/same_bws.rds") + theme(text = element_text(size = 15)))
+```
+
+```{r bws-4, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5.5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/narrower_dataset.rds") + theme(text = element_text(size = 15)))
+```
+
 
 ```{r alt-proc, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5.5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
 print(readRDS("temp/alt_proc_rdd.rds") + theme(text = element_text(size = 15)))
 ```
 
 ```{r placebo-prior, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("./temp/placebo-prior.rds") + theme(text = element_text(size = 15)))
+print(readRDS("./temp/placebo_prior.rds") + theme(text = element_text(size = 15)))
 ```
-
-```{r did-length, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("./temp/did_length.rds") + theme(text = element_text(size = 15)))
-```
-
-```{r did-week, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
-print(readRDS("./temp/did_week.rds") + theme(text = element_text(size = 15)))
-```
-
 
 ```{r rd-plot, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
 print(readRDS("./temp/rd_plot.rds") + theme(text = element_text(size = 15)))
@@ -128,13 +127,13 @@ print(readRDS("temp/individual_years.rds") + theme(text = element_text(size = 15
  
 ```{r balance-tab-full, echo = F}
 
-t <- readRDS("temp/demo_table_half_mile.rds") %>% 
+t <- readRDS("./temp/demo_table_half_mile.rds") %>% 
   select(-Year)
 colnames(t)[1] <- ""
 j <- knitr::kable(t, booktabs = T, caption = "(\\#tab:full-bal) Demographics of Block Groups with Police Killings", linesep = "") %>%
   kable_styling(latex_options = c("HOLD_position")) %>% 
-  pack_rows("2016", 1, 10) %>%
-  pack_rows("2020", 11, 20) %>% 
+  pack_rows("2016", 1, 11) %>%
+  pack_rows("2020", 12, 22) %>% 
   column_spec(2:5, width = "1in")
  
 j
