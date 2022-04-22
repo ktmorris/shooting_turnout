@@ -134,68 +134,149 @@ find_closest <- function(bg_data_f, centroids_f, d, type){
 
 ## loop over each state in the country to identify nearest killings pre / post election for each block group
 
-for(s in unique(filter(fips_codes, state_code <= 56)$state_code)){
-  print(s)
-  ## download block group shapefile data using tigris package for 2016
-  bgs <- block_groups(state = s, class = "sp", year = 2016)
+
+##########################
+# read coded killings keep only well-coded killings
+full_set <- readRDS("temp/geocoded_shootings.rds") %>% 
+  ungroup() %>% 
+  mutate(score = ifelse(is.na(score), 100, as.numeric(score))) %>% 
+  filter(score > 95)
+
+## create function to find closest killing on any given day
+find_closest <- function(bg_data_f, centroids_f, d){
+  d = as.Date(d)
   
-  ## turn centroids into spatial points
-  centroids <- SpatialPoints(
-    data.table(x = as.numeric(bgs@data$INTPTLON), y = as.numeric(bgs@data$INTPTLAT))
-  )
+  ## keep killings occuring on that day
+  sites <- filter(full_set,
+                  date == d) %>%
+    mutate(id = row_number())
   
+  if(nrow(sites) > 0){ #if there were any killings on that day, do the following:
+    ## create tree of those killings
+    tree <- createTree(coordinates(select(sites, x = longitude, y = latitude)))
+    
+    ## find closest killing to each point in centroids_f
+    inds <- knnLookup(tree , newdat = coordinates(centroids_f), k = 1)
+    
+    ## combine killing info and BG info
+    bg_data_f <- left_join(cbind(bg_data_f, inds),
+                           select(sites, id, longitude, latitude, date, id2),
+                           by = c("inds" = "id"))
+    
+    ## calculate distance between BG and killing
+    dist <- data.table(dist = pointDistance(select(bg_data_f, INTPTLON, INTPTLAT),
+                                            select(bg_data_f, longitude, latitude), lonlat = T) * 0.000621371,
+                       date = bg_data_f$date,
+                       id = bg_data_f$id2,
+                       GEOID = bg_data_f$GEOID) %>% 
+      filter(dist <= 20)
+  }else{
+    dist <- data.table(dist = double(),
+                       date = as.Date(character()),
+                       id = integer(),
+                       GEOID = character())
+  }
   
-  bg_data <- bgs@data %>% 
-    mutate_at(vars(INTPTLON, INTPTLAT), as.numeric)
-  
-  #########################################
-  ## run user defined function to find closest killing in 2 months before and after 2016, 2018, 2020 elections
-  bg_data$dist_pre <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "pre")$dist
-  bg_data$dist_post <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "post")$dist
-  
-  bg_data$date_pre <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "pre")$date
-  bg_data$date_post <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "post")$date
-  
-  bg_data$id_pre <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "pre")$id
-  bg_data$id_post <- find_closest(bg_data, centroids_f = centroids, d = "2016-11-08", type = "post")$id
-  
-  bg_data_16 <- select(bg_data, GEOID, starts_with("dist_"), starts_with("date_"), starts_with("id_p")) %>% 
-    mutate(year = 2016)
-  
-  ##########################
-  ## download block group shapefile data using tigris package for 2020
-  bgs <- block_groups(state = s, class = "sp", year = 2020)
-  
-  ## turn centroids into spatial points
-  centroids <- SpatialPoints(
-    data.table(x = as.numeric(bgs@data$INTPTLON), y = as.numeric(bgs@data$INTPTLAT))
-  )
-  
-  
-  bg_data <- bgs@data %>% 
-    mutate_at(vars(INTPTLON, INTPTLAT), as.numeric)
-  
-  #########################################
-  ## run user defined function to find closest killing in 2 months before and after 2016, 2018, 2020 elections
-  bg_data$dist_pre <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "pre")$dist
-  bg_data$dist_post <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "post")$dist
-  
-  bg_data$date_pre <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "pre")$date
-  bg_data$date_post <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "post")$date
-  
-  bg_data$id_pre <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "pre")$id
-  bg_data$id_post <- find_closest(bg_data, centroids_f = centroids, d = "2020-11-03", type = "post")$id
-  
-  bg_data_20 <- select(bg_data, GEOID, starts_with("dist_"), starts_with("date_"), starts_with("id_p")) %>% 
-    mutate(year = 2020)
-  
-  
-  bg_data <- bind_rows(bg_data_16, bg_data_20)
-  saveRDS(bg_data, paste0("temp/bgs_", s, ".rds"))
+  return(dist)
 }
 
-files <- list.files(path = "temp/", pattern = "^bgs_[0-9][0-9].rds", full.names = T)
+## this will keep one observation for every block group for every shooting within 20 miles over the 2 year-long periods
+## loop over every state
+for(s in unique(filter(fips_codes, state_code <= 56)$state_code)){
+  print(s)
+  # if(!(file.exists(paste0("temp/bgs_dists_new_", s, ".rds")))){
+    
+    ## pull BG shapefiles using tigris package
+    bgs <- block_groups(state = s, class = "sp")
+    
+    centroids <- SpatialPoints(
+      data.table(x = as.numeric(bgs@data$INTPTLON), y = as.numeric(bgs@data$INTPTLAT))
+    )
+    
+    
+    bg_data <- bgs@data %>%
+      mutate_at(vars(INTPTLON, INTPTLAT), as.numeric)
+    
+    #########################################
+    ## loop over every day between Jan 1, 2020, and Election day
+    ## only retain the info if within 0.5 miles to cut down on number of observations
+    tot <- rbindlist(lapply(seq(as.Date("2020-05-03"), as.Date("2021-05-02"), by="days"), function(d){
+      l <- find_closest(bg_data, centroids, d)
+    }))
+    
+    tot2 <- rbindlist(lapply(seq(as.Date("2016-05-08"), as.Date("2017-05-07"), by="days"), function(d){
+      l <- find_closest(bg_data, centroids, d)
+    }))
+    
+    tot <- bind_rows(tot, tot2)
+    
+    ## for each state, save a table with 1 observation for each BG for each day with closest killing < 0.5
+    saveRDS(tot, paste0("temp/bgs_dists_new_", s, ".rds"))
+  # }
+}
+
+files <- list.files(path = "temp/", pattern = "^bgs_dists_new_*", full.names = T)
 
 all_bgs <- rbindlist(lapply(files, readRDS))
 
-saveRDS(all_bgs, "temp/dists_long.rds")
+saveRDS(all_bgs, "temp/dists_long_new.rds")
+
+####################
+####################
+####################
+####################
+####################
+
+
+full_set <- readRDS("temp/geocoded_shootings.rds") %>% 
+  ungroup() %>% 
+  mutate(score = ifelse(is.na(score), 100, as.numeric(score))) %>% 
+  filter(score > 95,
+         (date >= "2016-09-08" & date <= "2017-01-08") |
+           (date >= "2020-09-03" & date <= "2021-01-03")) %>% 
+  select(id2, latitude, longitude)
+
+
+cents <- rbindlist(lapply(unique(filter(fips_codes, state_code <= 56)$state_code), function(s){
+  print(s)
+
+  bgs <- block_groups(state = s, class = "sp")
+  
+  return(data.table(GEOID = bgs@data$GEOID,
+                    long = as.numeric(bgs@data$INTPTLON),
+                    lat = as.numeric(bgs@data$INTPTLAT)))
+}))
+
+
+ds <- rbindlist(lapply(c(1:nrow(full_set)), function(k){
+  
+  cents$dist <- pointDistance(select(cents, long, lat),
+                              cbind(full_set$longitude[k], full_set$latitude[k]), lonlat = T) * 0.000621371
+  
+  return(filter(cents, dist <= 20) %>% 
+           mutate(k_id = full_set$id2[k]))
+  
+}))
+
+cvap20 <- fread("../regular_data/CVAP_2015-2019_ACS_csv_files/BlockGr.csv") %>%
+  filter(lntitle == "Total") %>%
+  mutate(GEOID = substring(geoid, 8)) %>%
+  select(GEOID, cvap = cvap_est)
+
+ds <- left_join(ds, cvap20)
+
+ll <- ds %>% 
+  group_by(k_id) %>% 
+  summarize(count_5 = sum(dist <= 5),
+            pop_5 = sum((cvap * (dist <= 5))),
+            count_1 = sum(dist <= 1),
+            pop_1 = sum((cvap * (dist <= 1))),
+            count_half = sum(dist <= .5),
+            pop_half = sum((cvap * (dist <= .5))))
+
+mean(ll$count_half)
+
+l2 <- ds %>% 
+  filter(dist <= 1) %>% 
+  group_by(GEOID) %>% 
+  filter(row_number() == 1)
