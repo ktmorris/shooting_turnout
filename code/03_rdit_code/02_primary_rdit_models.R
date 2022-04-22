@@ -38,17 +38,33 @@ cleanup("ballots")
 ########################### cvap
 ### read in block group cvap from each year
 
+cvap14 <- fread("../regular_data/CVAP_2010-2014_ACS_csv_files/BlockGr.csv") %>%
+  filter(lntitle == "Total") %>%
+  mutate(GEOID = substring(geoid, 8),
+         year = "2016") %>%
+  select(GEOID, cvap_pre = CVAP_EST, year)
+
 cvap16 <- fread("../regular_data/CVAP_2012-2016_ACS_csv_files/BlockGr.csv") %>%
   filter(lntitle == "Total") %>%
   mutate(GEOID = substring(geoid, 8),
          year = "2016") %>%
   select(GEOID, cvap = CVAP_EST, year)
 
-cvap20 <- fread("../regular_data/CVAP_2016-2020_ACS_csv_files/BlockGr.csv") %>%
+cvap16 <- left_join(cvap16, cvap14)
+
+cvap18 <- fread("../regular_data/CVAP_2014-2018_ACS_csv_files/BlockGr.csv") %>%
   filter(lntitle == "Total") %>%
-  mutate(GEOID = substring(geoid, 10),
+  mutate(GEOID = substring(geoid, 8),
+         year = "2020") %>%
+  select(GEOID, year, cvap_pre = cvap_est)
+
+cvap20 <- fread("../regular_data/CVAP_2015-2019_ACS_csv_files/BlockGr.csv") %>%
+  filter(lntitle == "Total") %>%
+  mutate(GEOID = substring(geoid, 8),
          year = "2020") %>%
   select(GEOID, year, cvap = cvap_est)
+
+cvap20 <- left_join(cvap20, cvap18)
 
 cvap <- bind_rows(cvap16, cvap20)
 
@@ -75,15 +91,18 @@ census <- bind_rows(c16, c20)
 ballots <- inner_join(ballots, census)
 saveRDS(filter(ballots, year == 2020), "temp/to_ey.rds")
 cleanup("ballots")
+saveRDS(ballots, "temp/full_demos.rds")
 ####################
 
 ## read in dists for each BG
-dists <- readRDS("temp/dists_long.rds")
+dists <- readRDS("temp/dists_long_new.rds") %>% 
+  mutate(year = as.character(floor(year(date) / 2) * 2))
 
 ## calculate turnout, set to 100% if over 100%
 dists <- inner_join(dists, ballots) %>% 
   mutate(turnout = ballots / cvap,
-         turnout_pre = ballots_pre / cvap) %>% 
+         turnout_pre = ballots_pre / cvap_pre,
+         pre = (year == "2016" & date <= "2016-11-08") | (year == "2020" & date <= "2020-11-03")) %>% 
   mutate_at(vars(starts_with("turnout")), ~ ifelse(. > 1, 1, .))
 
 ##### SAVE PRIMARY DATASET FOR RDITS!!!
@@ -92,53 +111,34 @@ saveRDS(dists, "temp/shooting_demos.rds")
 ####################################################
 ####################################################
 
-dists <- readRDS("temp/shooting_demos.rds")
+dists <- readRDS("temp/shooting_demos.rds") %>% 
+  filter((date >= "2016-09-08" & date <= "2017-01-08") |
+           (date >= "2020-09-03" & date <= "2021-01-03"))
 
 ### loop over thresholds for RDITS
 out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
-  t2 <- 0
-  ## keep observations within threshold before / after each election
-  full_treat <- bind_rows(
-    dists %>% 
-      filter(year == "2020",
-             dist_pre <= threshold,
-             dist_pre > t2,
-             dist_post > threshold) %>% 
-      select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
-             median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_pre, some_college) %>% 
-      mutate(treated = T,
-             d2 = as.integer(date - as.Date("2020-11-03"))),
-    dists %>% 
-      filter(year == "2020",
-             dist_pre > threshold,
-             dist_post <= threshold) %>% 
-      select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
-             median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_pre, some_college) %>% 
-      mutate(treated = F,
-             d2 = as.integer(date - as.Date("2020-11-03"))),
-    dists %>% 
-      filter(year == "2016",
-             dist_pre <= threshold,
-             dist_pre > t2,
-             dist_post > threshold) %>% 
-      select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
-             median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_pre, some_college) %>% 
-      mutate(treated = T,
-             d2 = as.integer(date - as.Date("2016-11-08"))),
-    dists %>% 
-      filter(year == "2016",
-             dist_pre > threshold,
-             dist_post <= threshold) %>% 
-      select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
-             median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_pre, some_college) %>% 
-      mutate(treated = F,
-             d2 = as.integer(date - as.Date("2016-11-08")))
-  ) %>% 
-    mutate(t16 = year == "2016")
+  
+  ##keep the observations within the threshold closest to election day
+  ## using data.table notation to speed this up
+  set_pre <- dists[dists$dist <= threshold & dists$pre,
+                   .SD[date %in% max(date)], by=list(year, GEOID)]
+  set_pre <- set_pre[, .SD[1], by = .(year, GEOID)] %>% 
+    mutate(treated = T)
+  
+  ##keep the observations within the threshold closest to election day
+  set_post <- dists[dists$dist <= threshold & !dists$pre,
+                    .SD[date %in% min(date)], by=list(year, GEOID)]
+  set_post <- set_post[!(paste0(set_post$GEOID, set_post$year) %in% paste0(set_pre$GEOID, set_pre$year)),
+                       .SD[1], by = .(year, GEOID)] %>% 
+    mutate(treated = F)
+  
+  full_treat <- bind_rows(set_pre, set_post) %>% 
+    select(GEOID, id, date, dist, year, turnout,
+           median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
+           some_college, turnout_pre, treated) %>% 
+    mutate(d2 = ifelse(year == "2020", as.integer(date - as.Date("2020-11-03")),
+                       as.integer(date - as.Date("2016-11-08"))),
+           t16 = year == "2016")
   
   ## keep complete cases, necessary for balancing
   full_treat <- full_treat[complete.cases(select(full_treat,
@@ -202,6 +202,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
               l = l[["ci"]][,1])
 }))
 
+saveRDS(out, "temp/primary_out_data.rds")
 ## create figure 3
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
@@ -312,20 +313,28 @@ saveRDS(dd, "temp/placebos.rds")
 ###########################
 
 ## create naive RDIT plot for Figure 2
-j <- rdplot(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0)[["rdplot"]]
+j <- rdplot(y = full_treat$turnout, x = full_treat$d2, c = 0, p = 5)[["rdplot"]]
 j[["labels"]] <- j[["labels"]][-1]
 j <- j +
+  geom_point(aes(x = d2, y = turnout), data = full_treat, shape = 21,
+             color = "transparent", fill = "gray", alpha = 0.5) +
   theme_bc(base_family = "LM Roman 10") +
   labs(x = "Days Between Police Killing and Election",
        y = "Turnout") +
   scale_y_continuous(labels = percent) +
   scale_x_continuous(breaks = c(-60, -30, 0, 30, 60),
-                     labels = c("Killing Occurs\n60 Days\nBefore Election",
-                                "30", "Killing Occurs on\nElection Day",
+                     labels = c("Killing Occurs\n60 Days\nBefore Election", "30",
+                                "Killing Occurs on\nElection Day",
                                 "30", "Killing Occurs\n60 Days\nAfter Election"),
                      limits = c(-63, 63))
 j
 
+h <- j[["layers"]][[5]]
+
+j[["layers"]][[5]] <- j[["layers"]][[1]]
+
+j[["layers"]][[1]] <- h
+j
 saveRDS(j, "temp/rd_plot.rds")
 #################################
 ## the rest of the script creates Table 1
@@ -353,10 +362,11 @@ demos <- bind_rows(demos, demos2)
 
 
 ## keep only untreated / not in data observations
-f <- filter(dists, !(GEOID %in% full_treat$GEOID)) %>% 
+f <- anti_join(readRDS("temp/full_demos.rds"), full_treat, by = c("GEOID", "year")) %>% 
+  mutate(turnout_pre = ballots_pre / cvap_pre) %>% 
   select(nh_black, latino, nh_white, asian, median_income, median_age,
          pop_dens, turnout_pre, year, GEOID, some_college)
-
+  
 f <- f[complete.cases(f), ] %>% 
   filter(is.finite(turnout_pre)) %>% 
   group_by(year) %>% 
