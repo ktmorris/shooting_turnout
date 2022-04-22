@@ -1,51 +1,33 @@
 
 ## read in primary data
-dists <- readRDS("temp/shooting_demos.rds")
+dists <- readRDS("temp/shooting_demos.rds") %>% 
+  filter((date >= "2016-09-08" & date <= "2017-01-08") |
+           (date >= "2020-09-03" & date <= "2021-01-03"))
+
+bws <- readRDS("temp/primary_out_data.rds")
 
 ## loop over thresholds
 out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
-  t2 <- 0
-  full_treat <- bind_rows(
-    dists %>% 
-      filter(year == "2020",
-             dist_pre <= threshold,
-             dist_pre > t2,
-             dist_post > threshold) %>% 
-      select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
-             median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_pre, some_college) %>% 
-      mutate(treated = T,
-             d2 = as.integer(date - as.Date("2020-11-03"))),
-    dists %>% 
-      filter(year == "2020",
-             dist_pre > threshold,
-             dist_post <= threshold) %>% 
-      select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
-             median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_pre, some_college) %>% 
-      mutate(treated = F,
-             d2 = as.integer(date - as.Date("2020-11-03"))),
-    dists %>% 
-      filter(year == "2016",
-             dist_pre <= threshold,
-             dist_pre > t2,
-             dist_post > threshold) %>% 
-      select(GEOID, id = id_pre, date = date_pre, dist = dist_pre, year, turnout,
-             median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_pre, some_college) %>% 
-      mutate(treated = T,
-             d2 = as.integer(date - as.Date("2016-11-08"))),
-    dists %>% 
-      filter(year == "2016",
-             dist_pre > threshold,
-             dist_post <= threshold) %>% 
-      select(GEOID, id = id_post, date = date_post, dist = dist_post, year, turnout,
-             median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-             turnout_pre, some_college) %>% 
-      mutate(treated = F,
-             d2 = as.integer(date - as.Date("2016-11-08")))
-  ) %>% 
-    mutate(t16 = year == "2016")
+  ##keep the observations within the threshold closest to election day
+  set_pre <- dists[dists$dist <= threshold & dists$pre,
+                   .SD[date %in% max(date)], by=list(year, GEOID)]
+  set_pre <- set_pre[, .SD[1], by = .(year, GEOID)] %>% 
+    mutate(treated = T)
+  
+  ##keep the observations within the threshold closest to election day
+  set_post <- dists[dists$dist <= threshold & !dists$pre,
+                    .SD[date %in% min(date)], by=list(year, GEOID)]
+  set_post <- set_post[!(paste0(set_post$GEOID, set_post$year) %in% paste0(set_pre$GEOID, set_pre$year)),
+                       .SD[1], by = .(year, GEOID)] %>% 
+    mutate(treated = F)
+  
+  full_treat <- bind_rows(set_pre, set_post) %>% 
+    select(GEOID, id, date, dist, year, turnout,
+           median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
+           some_college, turnout_pre, treated) %>% 
+    mutate(d2 = ifelse(year == "2020", as.integer(date - as.Date("2020-11-03")),
+                       as.integer(date - as.Date("2016-11-08"))),
+           t16 = year == "2016")
   
   
   full_treat <- full_treat[complete.cases(select(full_treat,
@@ -122,6 +104,21 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
     mutate(change_to = turnout - turnout_pre)
   ########################################
   
+  ## main model with narrowest bandwidths
+  la <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
+                weights = full_treat$weight,
+                covs = select(full_treat,
+                              latino, nh_white, asian,
+                              nh_black, median_income, median_age,
+                              pop_dens, turnout_pre, t16, some_college), h = min(bws$bw))
+  ## main model with widest bandwidths
+  lb <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
+                weights = full_treat$weight,
+                covs = select(full_treat,
+                              latino, nh_white, asian,
+                              nh_black, median_income, median_age,
+                              pop_dens, turnout_pre, t16, some_college), h = max(bws$bw))
+  
   ## rdit without balancing
   l <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                 covs = select(full_treat,
@@ -143,6 +140,13 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                               latino, nh_white, asian,
                               nh_black, median_income, median_age,
                               pop_dens, t16, some_college))
+  
+  l4b <- rdrobust(y = full_treat$turnout_pre, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
+                 weights = full_treat$weight2,
+                 covs = select(full_treat,
+                               latino, nh_white, asian,
+                               nh_black, median_income, median_age,
+                               pop_dens, t16, some_college))
   
   ## grab nonparametric bandwidth for alternate specifications
   bw <- rdbwselect(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
@@ -194,6 +198,20 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   
   ## combine results of all these models
   f <- bind_rows(
+    tibble(coef = la$coef,
+           se = la$se, 
+           pv = la$pv,
+           p = threshold,
+           t = "Narrowest",
+           u = la[["ci"]][,2],
+           l = la[["ci"]][,1]),
+    tibble(coef = lb$coef,
+           se = lb$se, 
+           pv = lb$pv,
+           p = threshold,
+           t = "Widest",
+           u = lb[["ci"]][,2],
+           l = lb[["ci"]][,1]),
     tibble(coef = l$coef,
            se = l$se, 
            pv = l$pv,
@@ -222,6 +240,13 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            t = "First Difference in Turnout",
            u = l4[["ci"]][,2],
            l = l4[["ci"]][,1]),
+    tibble(coef = l4b$coef,
+           se = l4b$se, 
+           pv = l4b$pv,
+           p = threshold,
+           t = "Prior Turnout",
+           u = l4b[["ci"]][,2],
+           l = l4b[["ci"]][,1]),
     tibble(coef = l5$coef,
            se = l5$se, 
            pv = l5$pv,
@@ -355,3 +380,49 @@ different_dists <- ggplot(out,
 different_dists
 
 saveRDS(different_dists, "temp/individual_years.rds")
+
+######################
+## create figure AXX
+out <- readRDS("temp/alt_rdds2.rds") %>% 
+  filter(t %in% c("Prior Turnout"))
+
+out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
+
+out <- mutate_at(out, vars(coef, l, u), ~. * -1)
+
+out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
+# out$t <- factor(out$t, levels = c('Double Bandwidth','30 Days','60 Days'))
+
+different_dists <- ggplot(out,
+                          aes(x = p, y = coef, ymin = l, ymax = u)) +
+  facet_grid(~estimate) +
+  geom_point() +
+  geom_errorbar(width = 0) + 
+  theme_bc(base_family = "LM Roman 10", base_size = 13) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(y = "Local Average Treatment Effect", x = "Radius Around Shooting (Miles)")
+different_dists
+saveRDS(different_dists, "temp/placebo_prior.rds")
+
+######################
+## create figure AXX
+out <- readRDS("temp/alt_rdds2.rds") %>% 
+  filter(t %in% c("Narrowest", "Widest"))
+
+out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
+
+out <- mutate_at(out, vars(coef, l, u), ~. * -1)
+
+out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
+# out$t <- factor(out$t, levels = c('Double Bandwidth','30 Days','60 Days'))
+
+different_dists <- ggplot(out,
+                          aes(x = p, y = coef, ymin = l, ymax = u)) +
+  facet_grid(t~estimate) +
+  geom_point() +
+  geom_errorbar(width = 0) + 
+  theme_bc(base_family = "LM Roman 10", base_size = 13) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(y = "Local Average Treatment Effect", x = "Radius Around Shooting (Miles)")
+different_dists
+saveRDS(different_dists, "temp/same_bws.rds")
