@@ -63,8 +63,16 @@ demos <- left_join(demos, select(results_2020, VTDID, share_biden))
 saveRDS(demos, "temp/MSP2_precinct_demos.rds")
 
 ########################################
-## read stop and frisk data
-ps <- fread("raw_data/minneapolis_Police_Stop_Data.csv")
+## read stop and frisk, crime data
+ps <- fread("raw_data/minneapolis_Police_Stop_Data.csv") %>% 
+  mutate(stop = 1)
+ps2 <- fread("raw_data/minneapolis_Crime_Data.csv") %>% 
+  select(responseDate = Occurred_Date,
+         lat = Latitude,
+         long = Longitude) %>% 
+  mutate(crime = 1)
+
+ps <- bind_rows(ps, ps2)
 
 ps <- ps %>% 
   mutate(date = as.Date(substring(responseDate, 1, 10), "%Y/%m/%d")) %>% 
@@ -85,7 +93,8 @@ ps <- cSplit(ps, "p", sep = " ") %>%
                               width = 2, pad = "0"),
                       gsub('[[:digit:]]+', '', p_2))) %>% 
   group_by(p_1, p_2) %>% 
-  summarize(police_stops = n())
+  summarize(police_stops = sum(stop, na.rm = T),
+            crimes = sum(crime, na.rm = T))
 
 ##############################################
 ## find center of every precinct
@@ -151,16 +160,17 @@ tot <- left_join(tot,
 tot <- tot %>% 
   mutate(median_income = median_income / 10000,
          police_stops = log(police_stops),
+         crimes = log(crimes),
          pop_dens = log(pop_dens))
 
 ### run models for Table 2
 m1 <- feols(share_yes ~ dist, tot, cluster = "inds")
 summary(m1)
 m2 <- feols(share_yes ~ dist +
-              police_stops, tot, cluster = "inds")
+              police_stops + crimes, tot, cluster = "inds")
 summary(m2)
 m3 <- feols(share_yes ~ dist +
-              police_stops +
+              police_stops + crimes +
               nh_black + nh_white + latino + asian +
               median_income + some_college + median_age +
               pop_dens + share_biden, tot, cluster = "inds")
@@ -172,6 +182,7 @@ modelsummary(list(m1, m2, m3),
              stars = c("*" = 0.05, "**" = 0.01, "***" = 0.001),
              coef_map = c("dist" = "Distance to Closest Police Killing",
                           "police_stops" = "Logged Number of Police Stops in 2021",
+                          "crimes" = "Logged Number of Crimes in 2021",
                           "nh_black" = "Pct. Non-Hispanic Black",
                           "nh_white" = "Pct. Non-Hispanic White",
                           "latino" = "Pct. Latinx",
