@@ -87,53 +87,6 @@ full_set$id2 <- c(1:nrow(full_set))
 
 
 saveRDS(full_set, "temp/geocoded_shootings.rds")
-##########################
-# read coded killings keep only well-coded killings
-full_set <- readRDS("temp/geocoded_shootings.rds") %>% 
-  ungroup() %>% 
-  mutate(score = ifelse(is.na(score), 100, as.numeric(score))) %>% 
-  filter(score > 95)
-
-
-#### create a function that identifies the date, location, id, and distance of the 
-#### closest killing to a given point in a given time period
-
-find_closest <- function(bg_data_f, centroids_f, d, type){
-  d = as.Date(d)
-  ## if type is 'pre', keep only killings in the two months before the date provided (ie, election day)
-  if(type == "pre"){
-    sites <- filter(full_set,
-                    date >= d - months(2),
-                    date < d) %>% 
-      mutate(id = row_number())
-  }else{ # if type is post, keep only killings that occur in the 2 months after election day
-    sites <- filter(full_set,
-                    date >= d,
-                    date < d + months(2)) %>% 
-      mutate(id = row_number())
-  }
-  
-  ##create a tree of the locations of the retained killings
-  tree <- createTree(coordinates(select(sites, x = longitude, y = latitude)))
-  
-  ## identify closest killing to each centroid
-  inds <- knnLookup(tree , newdat = coordinates(centroids_f), k = 1)
-  
-  ## combine block group data and the killing data
-  bg_data_f <- left_join(cbind(bg_data_f, inds),
-                       select(sites, id, longitude, latitude, date, id2),
-                       by = c("inds" = "id"))
-  
-  ## calculate the distance between the centroid and the killing
-  dist <- data.table(dist = pointDistance(select(bg_data_f, INTPTLON, INTPTLAT),
-                        select(bg_data_f, longitude, latitude), lonlat = T) * 0.000621371,
-                     date = bg_data_f$date,
-                     id = bg_data_f$id2)
-  return(dist)
-}
-
-## loop over each state in the country to identify nearest killings pre / post election for each block group
-
 
 ##########################
 # read coded killings keep only well-coded killings
