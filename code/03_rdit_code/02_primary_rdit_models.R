@@ -81,7 +81,7 @@ c16 <- readRDS("../regular_data/census_bgs_16.rds") %>%
   select(GEOID, year, latino, asian, nh_white, nh_black, median_income, median_age,
          pop_dens, some_college)
 
-c20 <- readRDS("../regular_data/census_bgs_20.rds") %>%
+c20 <- readRDS("../regular_data/census_bgs_19.rds") %>%
   mutate(year = "2020") %>%
   select(GEOID, year, latino, asian, nh_white, nh_black, median_income, median_age,
          pop_dens, some_college)
