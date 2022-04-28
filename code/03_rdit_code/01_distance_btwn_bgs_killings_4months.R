@@ -154,6 +154,7 @@ for(s in unique(filter(fips_codes, state_code <= 56)$state_code)){
     ## loop over every day between Jan 1, 2020, and Election day
     ## only retain the info if within 0.5 miles to cut down on number of observations
     tot <- rbindlist(lapply(seq(as.Date("2020-05-03"), as.Date("2021-05-02"), by="days"), function(d){
+      print(d)
       l <- find_closest(bg_data, centroids, d)
     }))
     
