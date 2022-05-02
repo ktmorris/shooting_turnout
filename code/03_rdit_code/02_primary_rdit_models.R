@@ -113,11 +113,6 @@ saveRDS(dists, "temp/shooting_demos.rds")
 
 dists <- readRDS("temp/shooting_demos.rds")
 
-dists <- left_join(dists,
-                   readRDS("temp/trends.rds") %>% 
-                     select(id = id2, pre_hits = pre, post_hits = post)) %>% 
-  mutate(trend = post_hits > (2*pre_hits))
-
 ### loop over thresholds for RDITS
 out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   
