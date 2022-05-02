@@ -9,7 +9,7 @@
 
 # read wapo data 
 shootings_wapo <- fread("raw_data/wapo_shootings.csv") %>%
-  select(id, date, latitude, longitude, age, race) %>%
+  select(id, date, latitude, longitude, age, race, name) %>%
   mutate(date = as.Date(date))
 
 # read MPV data
@@ -21,7 +21,8 @@ shootings_mapping <- shootings_mapping %>%
   select(date = date_of_incident__month_day_year_,
          street = street_address_of_incident, age = victim_s_age, race = victim_s_race,
          city, state, zipcode,
-         wapo_id__if_included_in_wapo_database_) %>%
+         wapo_id__if_included_in_wapo_database_,
+         name = victim_s_name) %>%
   mutate(date = as.Date(date),
          age = as.integer(age))
 
@@ -48,40 +49,42 @@ geos <- filter(full_set, !is.na(latitude))
 
 to_geo <- filter(full_set, is.na(latitude))
 
-hold <- c()
-
-for(i in c(1:nrow(to_geo))){
-  te <- filter(to_geo, row_number() == i)
-
-  print(i)
-  es = httr::GET("https://geoservices.tamu.edu/Services/Geocode/WebService/GeocoderWebServiceHttpNonParsed_V04_01.aspx?",
-           query = list(streetAddress= te$street,
-                        city=te$city,
-                        state=te$state,
-                        zip=te$zipcode,
-                        apiKey="XXX",
-                        format="json",
-                        version="4.01",
-                        census = "true",
-                        censusYear = "2010"))
-
-  data = jsonlite::fromJSON(rawToChar(es$content))
-
-  n <- cbind(data$InputAddress,
-             data[["OutputGeocodes"]][["OutputGeocode"]],
-             data[["OutputGeocodes"]][["CensusValues"]][[1]][["CensusValue1"]]) %>%
-    select(latitude = Latitude,
-           longitude = Longitude,
-           score = MatchScore)
-
-  hold <- rbind(hold, n)
+if(nrow(to_geo) > 0){
+  hold <- c()
+  
+  for(i in c(1:nrow(to_geo))){
+    te <- filter(to_geo, row_number() == i)
+    
+    print(i)
+    es = httr::GET("https://geoservices.tamu.edu/Services/Geocode/WebService/GeocoderWebServiceHttpNonParsed_V04_01.aspx?",
+                   query = list(streetAddress= te$street,
+                                city=te$city,
+                                state=te$state,
+                                zip=te$zipcode,
+                                apiKey="XXX",
+                                format="json",
+                                version="4.01",
+                                census = "true",
+                                censusYear = "2010"))
+    
+    data = jsonlite::fromJSON(rawToChar(es$content))
+    
+    n <- cbind(data$InputAddress,
+               data[["OutputGeocodes"]][["OutputGeocode"]],
+               data[["OutputGeocodes"]][["CensusValues"]][[1]][["CensusValue1"]]) %>%
+      select(latitude = Latitude,
+             longitude = Longitude,
+             score = MatchScore)
+    
+    hold <- rbind(hold, n)
+  }
+  
+  full_set <- bind_rows(
+    geos,
+    cbind(select(to_geo, -latitude, -longitude, -score), hold) %>%
+      mutate_at(vars(latitude, longitude), as.double)
+  ) 
 }
-
-full_set <- bind_rows(
-  geos,
-  cbind(select(to_geo, -latitude, -longitude, -score), hold) %>%
-    mutate_at(vars(latitude, longitude), as.double)
-)
 
 full_set$id2 <- c(1:nrow(full_set))
 
@@ -186,8 +189,8 @@ full_set <- readRDS("temp/geocoded_shootings.rds") %>%
   ungroup() %>% 
   mutate(score = ifelse(is.na(score), 100, as.numeric(score))) %>% 
   filter(score > 95,
-         (date >= "2016-09-08" & date <= "2017-01-08") |
-           (date >= "2020-09-03" & date <= "2021-01-03")) %>% 
+         (date >= "2016-05-08" & date <= "2017-05-07") |
+           (date >= "2020-05-03" & date <= "2021-05-02")) %>% 
   select(id2, latitude, longitude)
 
 
@@ -228,7 +231,7 @@ ll <- ds %>%
             count_half = sum(dist <= .5),
             pop_half = sum((cvap * (dist <= .5))))
 
-mean(ll$count_half)
+mean(ll$count_1)
 
 l2 <- ds %>% 
   filter(dist <= 1) %>% 
