@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/W32TeX) (preloaded format=xelatex 2022.3.31)  22 APR 2022 15:52
+This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/W32TeX) (preloaded format=xelatex 2022.3.31)  29 APR 2022 17:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -705,6 +705,9 @@ LaTeX Warning: Label `fig:map' multiply defined.
 
 LaTeX Warning: Label `fig:map' multiply defined.
 
+
+LaTeX Warning: Label `fig:map' multiply defined.
+
 )
 \openout1 = `shoot_to.aux'.
 
@@ -1123,6 +1126,11 @@ File: shoot_to_files/figure-latex/placebo-cuts-1.pdf Graphic file (type pdf)
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
+File: shoot_to_files/figure-latex/trend-1.pdf Graphic file (type pdf)
+<use shoot_to_files/figure-latex/trend-1.pdf>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
 File: shoot_to_files/figure-latex/bws-1.pdf Graphic file (type pdf)
 <use shoot_to_files/figure-latex/bws-1.pdf>
 
@@ -1201,19 +1209,19 @@ File: shoot_to_files/figure-latex/individ-years-1.pdf Graphic file (type pdf)
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 8.4pt on input line 294.
+(Font)              scaled to size 8.4pt on input line 303.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 6.0pt on input line 294.
+(Font)              scaled to size 6.0pt on input line 303.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 8.40076pt on input line 294.
+(Font)              scaled to size 8.40076pt on input line 303.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 6.00055pt on input line 294.
+(Font)              scaled to size 6.00055pt on input line 303.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 8.3991pt on input line 294.
+(Font)              scaled to size 8.3991pt on input line 303.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 5.99936pt on input line 294.
+(Font)              scaled to size 5.99936pt on input line 303.
 
-Overfull \hbox (20.21695pt too wide) in paragraph at lines 294--326
+Overfull \hbox (20.21695pt too wide) in paragraph at lines 303--335
  [][] 
  []
 
@@ -1221,7 +1229,7 @@ Overfull \hbox (20.21695pt too wide) in paragraph at lines 294--326
 Overfull \vbox (132.87802pt too high) has occurred while \output is active []
 
 [2] [3] [4] [5] [6] [7] [8] [9] [10] [11] [12] [13] [14] [15] [16] [17] [18] [1
-9] (./shoot_to.aux)
+9] [20] (./shoot_to.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
@@ -1229,12 +1237,12 @@ Package rerunfilecheck Info: File `shoot_to.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 18903 strings out of 478179
- 354080 string characters out of 5852732
- 806373 words of memory out of 5000000
- 39211 multiletter control sequences out of 15000+600000
+ 18914 strings out of 478179
+ 354508 string characters out of 5852732
+ 806455 words of memory out of 5000000
+ 39221 multiletter control sequences out of 15000+600000
  477698 words of font info for 89 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  86i,12n,121p,371b,502s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on shoot_to.pdf (20 pages).
+Output written on shoot_to.pdf (21 pages).

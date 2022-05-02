@@ -59,6 +59,10 @@ print(readRDS("./temp/diff_polys_primary.rds") + theme(text = element_text(size 
 print(readRDS("./temp/placebos.rds") + theme(text = element_text(size = 15)))
 ```
 
+```{r trend, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("./temp/trend_non_trend.rds") + theme(text = element_text(size = 15)))
+```
+
 ```{r bws, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5.5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
 print(readRDS("temp/alt_bws_rdd.rds") + theme(text = element_text(size = 15)))
 ```
