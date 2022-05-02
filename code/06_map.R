@@ -20,10 +20,10 @@ full_set <- readRDS("temp/geocoded_shootings.rds") %>%
   filter(score > 95)
 ## keep killings within 2 months of 2016, 2020 election
 pre_post <- filter(full_set,
-                   (date >= as.Date("2020-11-03") - months(2) &
-                        date < as.Date("2020-11-03") + months(2)) |
-                     (date >= as.Date("2016-11-08") - months(2) &
-                        date < as.Date("2016-11-08") + months(2))) %>% 
+                   (date >= as.Date("2020-11-03") - months(6) &
+                        date < as.Date("2020-11-03") + months(6)) |
+                     (date >= as.Date("2016-11-08") - months(6) &
+                        date < as.Date("2016-11-08") + months(6))) %>% 
   mutate(year = floor(year(date) / 2) * 2,
          pre = date < "2016-11-08" | (year == 2020 & date < "2020-11-03"))
 
@@ -49,7 +49,7 @@ t <- ggplot() +
   geom_path(data = filter(state_map,
                           long > -130), mapping = aes(x = long, y = lat, group = group)) +
   geom_point(aes(x = longitude, y = latitude, fill = pre, shape = pre), color = "black",
-             data = filter(pre_post, year(date) == 2020),
+             data = filter(pre_post, year == 2020),
              alpha = 0.5) +
   coord_map() +
   theme_bc(base_family = "LM Roman 10") +
@@ -65,7 +65,7 @@ t <- ggplot() +
        shape = "Killing Timing")
 
 t +
-  ggtitle("Police Killing within 2 Months of 2020 Election")
+  ggtitle("Police Killing within 6 Months of 2020 Election")
 saveRDS(t, "temp/map.rds")
 
 ggsave("temp/map.png")
@@ -74,7 +74,7 @@ t <- ggplot() +
   geom_path(data = filter(state_map,
                           long > -130), mapping = aes(x = long, y = lat, group = group)) +
   geom_point(aes(x = longitude, y = latitude, fill = pre, shape = pre), color = "black",
-             data = filter(pre_post, year(date) == 2016),
+             data = filter(pre_post, year == 2016),
              alpha = 0.5) +
   coord_map() +
   theme_bc(base_family = "LM Roman 10") +
@@ -90,7 +90,7 @@ t <- ggplot() +
        shape = "Killing Timing")
 
 t +
-  ggtitle("Police Killing within 2 Months of 2016 Election")
+  ggtitle("Police Killing within 6 Months of 2016 Election")
 saveRDS(t, "temp/map_16.rds")
 
 ggsave("temp/map_16.png")
