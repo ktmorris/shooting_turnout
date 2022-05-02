@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/W32TeX) (preloaded format=xelatex 2022.3.31)  29 APR 2022 17:14
+This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/W32TeX) (preloaded format=xelatex 2022.3.31)  2 MAY 2022 17:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1239,7 +1239,7 @@ Package rerunfilecheck Info: File `shoot_to.out' has not changed.
 Here is how much of TeX's memory you used:
  18914 strings out of 478179
  354508 string characters out of 5852732
- 806455 words of memory out of 5000000
+ 806453 words of memory out of 5000000
  39221 multiletter control sequences out of 15000+600000
  477698 words of font info for 89 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
