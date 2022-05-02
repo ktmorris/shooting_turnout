@@ -111,9 +111,12 @@ saveRDS(dists, "temp/shooting_demos.rds")
 ####################################################
 ####################################################
 
-dists <- readRDS("temp/shooting_demos.rds") %>% 
-  filter((date >= "2016-09-08" & date <= "2017-01-08") |
-           (date >= "2020-09-03" & date <= "2021-01-03"))
+dists <- readRDS("temp/shooting_demos.rds")
+
+dists <- left_join(dists,
+                   readRDS("temp/trends.rds") %>% 
+                     select(id = id2, pre_hits = pre, post_hits = post)) %>% 
+  mutate(trend = post_hits > (2*pre_hits))
 
 ### loop over thresholds for RDITS
 out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
@@ -313,7 +316,7 @@ saveRDS(dd, "temp/placebos.rds")
 ###########################
 
 ## create naive RDIT plot for Figure 2
-j <- rdplot(y = full_treat$turnout, x = full_treat$d2, c = 0, p = 5)[["rdplot"]]
+j <- rdplot(y = full_treat$turnout, x = full_treat$d2, c = 0, p = 2)[["rdplot"]]
 j[["labels"]] <- j[["labels"]][-1]
 j <- j +
   geom_point(aes(x = d2, y = turnout), data = full_treat, shape = 21,
@@ -322,11 +325,11 @@ j <- j +
   labs(x = "Days Between Police Killing and Election",
        y = "Turnout") +
   scale_y_continuous(labels = percent) +
-  scale_x_continuous(breaks = c(-60, -30, 0, 30, 60),
-                     labels = c("Killing Occurs\n60 Days\nBefore Election", "30",
+  scale_x_continuous(breaks = c(-180, -90, 0, 90, 180),
+                     labels = c("Killing Occurs\n180 Days\nBefore Election", "90",
                                 "Killing Occurs on\nElection Day",
-                                "30", "Killing Occurs\n60 Days\nAfter Election"),
-                     limits = c(-63, 63))
+                                "90", "Killing Occurs\n180 Days\nAfter Election"),
+                     limits = c(-190, 190))
 j
 
 h <- j[["layers"]][[5]]
