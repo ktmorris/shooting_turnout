@@ -1,8 +1,11 @@
 
 ## read in primary data
-dists <- readRDS("temp/shooting_demos.rds") %>% 
-  filter((date >= "2016-09-08" & date <= "2017-01-08") |
-           (date >= "2020-09-03" & date <= "2021-01-03"))
+dists <- readRDS("temp/shooting_demos.rds")
+
+dists <- left_join(dists, 
+                   readRDS("temp/trends.rds") %>% 
+                     select(id = id2, pre_hits = pre, post_hits = post)) %>% 
+  mutate(trend = post_hits > (2*pre_hits))
 
 bws <- readRDS("temp/primary_out_data.rds")
 
@@ -24,7 +27,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   full_treat <- bind_rows(set_pre, set_post) %>% 
     select(GEOID, id, date, dist, year, turnout,
            median_income, nh_white, nh_black, median_age, pop_dens, latino, asian,
-           some_college, turnout_pre, treated) %>% 
+           some_college, turnout_pre, treated, trend) %>% 
     mutate(d2 = ifelse(year == "2020", as.integer(date - as.Date("2020-11-03")),
                        as.integer(date - as.Date("2016-11-08"))),
            t16 = year == "2016")
@@ -194,7 +197,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                  covs = select(o20,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre, some_college))
+                               pop_dens, turnout_pre, some_college)))
   
   ## combine results of all these models
   f <- bind_rows(
@@ -426,3 +429,4 @@ different_dists <- ggplot(out,
   labs(y = "Local Average Treatment Effect", x = "Radius Around Shooting (Miles)")
 different_dists
 saveRDS(different_dists, "temp/same_bws.rds")
+
