@@ -37,37 +37,43 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                                                  pop_dens, turnout_pre, some_college)), ]
   
   ########################
+  
+  full_treat <- rbindlist(lapply(c(0, 1), function(tr){
+    full_treat <- filter(full_treat, trend == tr)
+    d16 <- filter(full_treat, year == "2016")
+    
+    mb <- ebalance(d16$treated,
+                   select(d16,
+                          nh_black, latino, nh_white, asian, median_income, median_age,
+                          pop_dens, turnout_pre, some_college))
+    
+    d16 <- bind_rows(
+      filter(d16, treated) %>%
+        mutate(weight = 1),
+      filter(d16, !treated) %>%
+        mutate(weight = mb$w)
+    )
+    
+    # balance within 2020
+    d20 <- filter(full_treat, year == "2020")
+    
+    mb <- ebalance(d20$treated,
+                   select(d20,
+                          nh_black, latino, nh_white, asian, median_income, median_age,
+                          pop_dens, turnout_pre, some_college))
+    
+    d20 <- bind_rows(
+      filter(d20, treated) %>%
+        mutate(weight = 1),
+      filter(d20, !treated) %>%
+        mutate(weight = mb$w)
+    )
+    
+    full_treat <- bind_rows(d16, d20)
+    return(full_treat)
+  }))
   ## balance within 2016
-  d16 <- filter(full_treat, year == "2016")
   
-  mb <- ebalance(d16$treated,
-                 select(d16,
-                        nh_black, latino, nh_white, asian, median_income, median_age,
-                        pop_dens, turnout_pre, some_college))
-  
-  d16 <- bind_rows(
-    filter(d16, treated) %>%
-      mutate(weight = 1),
-    filter(d16, !treated) %>%
-      mutate(weight = mb$w)
-  )
-  
-  # balance within 2020
-  d20 <- filter(full_treat, year == "2020")
-  
-  mb <- ebalance(d20$treated,
-                 select(d20,
-                        nh_black, latino, nh_white, asian, median_income, median_age,
-                        pop_dens, turnout_pre, some_college))
-  
-  d20 <- bind_rows(
-    filter(d20, treated) %>%
-      mutate(weight = 1),
-    filter(d20, !treated) %>%
-      mutate(weight = mb$w)
-  )
-  
-  full_treat <- bind_rows(d16, d20)
    ## keep only the trending observations
   trend_obs <- filter(full_treat, trend)
   l10 <- rdrobust(y = trend_obs$turnout, x = trend_obs$d2, p = 1, c = 0, cluster = trend_obs$id,
@@ -92,6 +98,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            pv = l10$pv,
            p = threshold,
            t = "Trending Killings",
+           n = l10$N_h[1] + l10$N_h[2],
            u = l10[["ci"]][,2],
            l = l10[["ci"]][,1]),
     tibble(coef = l11$coef,
@@ -99,6 +106,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            pv = l11$pv,
            p = threshold,
            t = "Non-Trending Killings",
+           n = l11$N_h[1] + l11$N_h[2],
            u = l11[["ci"]][,2],
            l = l11[["ci"]][,1])
   )
@@ -120,3 +128,18 @@ different_dists <- ggplot(out,
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(y = "Local Average Treatment Effect", x = "Radius Around Shooting (Miles)")
 different_dists
+
+saveRDS(different_dists, "./temp/trend_non_trend.rds")
+
+different_dists1b <- ggplot(filter(out, p <= 1, p > 0.31),
+                            aes(x = p, y = n)) +
+  facet_grid(~t) +
+  geom_point() +
+  geom_line() + 
+  scale_y_continuous(labels = comma) +
+  theme_bc(base_family = "LM Roman 10") +
+  theme(plot.title = element_text(size = 12)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(y = "Effective Sample Size", x = "Radius Around Shooting (Miles)")
+different_dists1b
+saveRDS(different_dists1b, "temp/sample_sizes_trends.rds")
