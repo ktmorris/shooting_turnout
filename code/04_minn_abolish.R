@@ -8,7 +8,7 @@ pd <- subset(pd, MCDNAME == "Minneapolis")
 cens <- readRDS("../regular_data/census_bgs_19.rds")
 
 ## connect to L2 voter file database
-db <- dbConnect(SQLite(), "D:/national_file_post20.db")
+db <- dbConnect(SQLite(), "M:/Democracy & Justice/democracy/voter_file_data/national_file_post20.db")
 ## grab geolocation info from MN file
 vf <- dbGetQuery(db, "select Voters_FIPS,
                         Residence_Addresses_CensusTract,
