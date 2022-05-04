@@ -178,8 +178,8 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   ## recombine
   full_treat <- bind_rows(d16, d20)
   ## save half-mile observations for robustness checks, other analysis
-  if(threshold == 0.5){
-    saveRDS(full_treat, "temp/primary_half.rds")
+  if(threshold == 0.3){
+    saveRDS(full_treat, "temp/primary_third.rds")
   }
   ########################################
   
@@ -235,7 +235,7 @@ saveRDS(sample_sizes, "temp/sample_size_plot.rds")
 ###########################
 ###########################
 ## read in half-mile observations
-full_treat <- readRDS("temp/primary_half.rds")
+full_treat <- readRDS("temp/primary_third.rds")
 
 l <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
               weights = full_treat$weight,
@@ -253,24 +253,29 @@ out <- rbindlist(lapply(c(1:5), function(x){
 
   f <- tibble(coef = l$coef,
               se = l$se,
+              n = l$N_h[1] + l$N_h[2],
               pv = l$pv,
               p = x,
               u = l[["ci"]][,2],
               l = l[["ci"]][,1])
 }))
-
+saveRDS(out, "temp/alt_polys_data.rds")
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
 
+out$z <- out$p == 1
+
 dd <- ggplot(out,
        aes(x = p, y = coef, ymin = l, ymax = u)) +
   facet_grid(~estimate) +
-  geom_point() +
   geom_errorbar(width = 0) +
+  geom_point(aes(color = z)) +
   theme_bc(base_family = "LM Roman 10") +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "Estimated Effect Size", x = "Polynomial")
+  labs(y = "Estimated Effect Size", x = "Polynomial") +
+  scale_color_manual(values = c("black", "red")) +
+  theme(legend.position = "none")
 dd
 saveRDS(dd, "temp/diff_polys_primary.rds")
 ########################################
@@ -284,12 +289,13 @@ out <- rbindlist(lapply(c(-7:7), function(x){
   
   f <- tibble(coef = l$coef,
               se = l$se,
+              n = l$N_h[1] + l$N_h[2],
               pv = l$pv,
               p = x,
               u = l[["ci"]][,2],
               l = l[["ci"]][,1])
 }))
-
+saveRDS(out, "temp/alt_cut_tab_data.rds")
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
