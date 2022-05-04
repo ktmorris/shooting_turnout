@@ -63,7 +63,7 @@ print(readRDS("./temp/placebos.rds") + theme(text = element_text(size = 15)))
 print(readRDS("./temp/trend_non_trend.rds") + theme(text = element_text(size = 15)))
 ```
 
-```{r bws, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5.5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+```{r bws, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 7.5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
 print(readRDS("temp/alt_bws_rdd.rds") + theme(text = element_text(size = 15)))
 ```
 
@@ -122,6 +122,10 @@ print(readRDS("temp/sample_size_plot.rds") + theme(text = element_text(size = 15
 print(readRDS("temp/sample_sizes_breakout.rds") + theme(text = element_text(size = 15)))
 ```
 
+```{r samples-trend, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/sample_sizes_trends.rds") + theme(text = element_text(size = 15)))
+```
+
 ```{r individ-years, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
 print(readRDS("temp/individual_years.rds") + theme(text = element_text(size = 15)))
 ```
@@ -139,6 +143,16 @@ j <- knitr::kable(t, booktabs = T, caption = "(\\#tab:full-bal) Demographics of 
   pack_rows("2016", 1, 11) %>%
   pack_rows("2020", 12, 22) %>% 
   column_spec(2:5, width = "1in")
+ 
+j
+
+``` 
+```{r big-tab, echo = F}
+
+t <- readRDS("./temp/big_table_prim.rds")
+
+j <- knitr::kable(t, booktabs = T, caption = "(\\#tab:big-tab) RDiT Outcomes, Primary Model", linesep = "") %>%
+  kable_styling(latex_options = c("HOLD_position"))
  
 j
 

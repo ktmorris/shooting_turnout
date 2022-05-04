@@ -1,9 +1,9 @@
-This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/W32TeX) (preloaded format=xelatex 2022.3.31)  4 MAY 2022 11:49
+This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/W32TeX) (preloaded format=xelatex 2022.3.31)  3 MAY 2022 17:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**shoot_to.tex
-(./shoot_to.tex
+**tabs.tex
+(./tabs.tex
 LaTeX2e <2021-11-15> patch level 1
 L3 programming layer <2022-02-24>
 (c:/Users/morrisk/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/base/article.cls
@@ -647,75 +647,12 @@ Package: makecell 2009/08/03 V0.1e Managing of Tab Column Heads and Cells
 \rotheadsize=\dimen257
 \c@nlinenum=\count328
 \TeXr@lab=\toks33
-) (./shoot_to.aux
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
+) (./tabs.aux
 
 LaTeX Warning: Label `tab:big-tab' multiply defined.
 
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
-
-LaTeX Warning: Label `fig:map' multiply defined.
-
 )
-\openout1 = `shoot_to.aux'.
+\openout1 = `tabs.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 104.
 LaTeX Font Info:    ... okay on input line 104.
@@ -1023,9 +960,9 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 104.
 LaTeX Info: Redefining \pageref on input line 104.
 LaTeX Info: Redefining \nameref on input line 104.
-(./shoot_to.out) (./shoot_to.out)
+(./tabs.out) (./tabs.out)
 \@outlinefile=\write3
-\openout3 = `shoot_to.out'.
+\openout3 = `tabs.out'.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: xetex
@@ -1115,153 +1052,44 @@ LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
 [1
 
 ]
-File: shoot_to_files/figure-latex/map-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/map-1.pdf>
-File: shoot_to_files/figure-latex/map-16-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/map-16-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/diff-poly-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/diff-poly-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/placebo-cuts-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/placebo-cuts-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/trend-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/trend-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/bws-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/bws-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/bws-2-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/bws-2-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/bws-4-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/bws-4-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/alt-proc-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/alt-proc-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/placebo-prior-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/placebo-prior-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/rd-plot-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/rd-plot-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/dists-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/dists-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/nhood-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/nhood-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/victim-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/victim-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/minn-scatter-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/minn-scatter-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/paneled-race-effects-1.pdf Graphic file (type
- pdf)
-<use shoot_to_files/figure-latex/paneled-race-effects-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/first-difference-1.pdf Graphic file (type pdf
-)
-<use shoot_to_files/figure-latex/first-difference-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/samples-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/samples-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/samples-bo-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/samples-bo-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/samples-trend-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/samples-trend-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: shoot_to_files/figure-latex/individ-years-1.pdf Graphic file (type pdf)
-<use shoot_to_files/figure-latex/individ-years-1.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 8.4pt on input line 312.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(1)/m/n' will be
-(Font)              scaled to size 6.0pt on input line 312.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 8.40076pt on input line 312.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(2)/m/n' will be
-(Font)              scaled to size 6.00055pt on input line 312.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 8.3991pt on input line 312.
-LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
-(Font)              scaled to size 5.99936pt on input line 312.
-
-Overfull \hbox (20.21695pt too wide) in paragraph at lines 312--344
- [][] 
+Overfull \hbox (25.375pt too wide) in alignment at lines 115--121
+ [] [] [] [] [] [] [] 
  []
 
 
-Overfull \hbox (145.25299pt too wide) in paragraph at lines 349--404
- [][] 
+Overfull \hbox (25.375pt too wide) in alignment at lines 121--127
+ [] [] [] [] [] [] [] 
  []
 
-[1]
-Overfull \vbox (132.87802pt too high) has occurred while \output is active []
 
-[2]
-Overfull \vbox (462.53934pt too high) has occurred while \output is active []
+Overfull \hbox (25.375pt too wide) in alignment at lines 127--129
+ [] [] [] [] [] [] [] 
+ []
 
-[3] [4] [5] [6] [7] [8] [9] [10] [11] [12] [13] [14] [15] [16] [17] [18] [19] [
-20] [21] (./shoot_to.aux)
+
+Overfull \hbox (25.375pt too wide) in alignment at lines 129--131
+ [] [] [] [] [] [] [] 
+ []
+
+
+Overfull \hbox (25.375pt too wide) in alignment at lines 131--180
+ [] [] [] [] [] [] [] 
+ []
+
+[2] (./tabs.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package rerunfilecheck Info: File `shoot_to.out' has not changed.
+Package rerunfilecheck Info: File `tabs.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 18926 strings out of 478179
- 355037 string characters out of 5852732
- 823584 words of memory out of 5000000
- 39232 multiletter control sequences out of 15000+600000
- 477698 words of font info for 89 fonts, out of 8000000 for 9000
+ 18671 strings out of 478179
+ 344451 string characters out of 5852732
+ 813789 words of memory out of 5000000
+ 39006 multiletter control sequences out of 15000+600000
+ 475777 words of font info for 78 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 86i,12n,121p,371b,502s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 86i,12n,121p,367b,502s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on shoot_to.pdf (22 pages).
+Output written on tabs.pdf (2 pages).

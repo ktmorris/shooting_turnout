@@ -1,0 +1,54 @@
+---
+title: "Stand Up Fight Back"
+subtitle: "How Police Killings Can Mobilize Local Communities"
+thanks: Thanks.
+author:
+- Kevin Morris^[Brennan Center for Justice, Researcher (kevin.morris@nyu.edu)]
+- Kelsey Shoub^[University of South Carolina, Assistant Professor (kshoub@mailbox.sc.edu)]
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+bibliography: "shootings_to.bib"
+output:
+  bookdown::pdf_document2:
+    toc: no
+    fig_caption: yes
+    latex_engine: xelatex
+    keep_tex: true
+
+link-citations: yes
+fontsize: 12pt
+header-includes:
+    - \usepackage{rotating}
+    - \usepackage{setspace}
+abstract: |
+  TKTKTKTK
+---
+\pagenumbering{gobble}
+\pagebreak
+```{r setup, echo = F, message = F, warning = F}
+knitr::opts_knit$set(root.dir = "..", dev = "cairo_pdf")
+library(systemfit)
+library(kevostools)
+library(AER)
+library(sandwich)
+library(lmtest)
+library(scales)
+library(ggpubr)
+library(tidyverse)
+library(extrafont)
+library(kableExtra)
+library(data.table)
+library(stargazer)
+```
+
+```{r big-tab, echo = F}
+
+t <- readRDS("./temp/big_table_prim.rds")
+
+j <- knitr::kable(t, booktabs = T, caption = "(\\#tab:big-tab) RDiT Outcomes, Primary Model", linesep = "",
+                  longtable = T, align=rep('c', ncol(t))) %>%
+  kable_styling(font_size = 10,
+                latex_options = c("HOLD_position", "repeat_header"))
+ 
+j
+
+``` 
