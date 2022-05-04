@@ -109,18 +109,18 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   
   ## main model with narrowest bandwidths
   la <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
-                weights = full_treat$weight,
-                covs = select(full_treat,
-                              latino, nh_white, asian,
-                              nh_black, median_income, median_age,
-                              pop_dens, turnout_pre, t16, some_college), h = min(bws$bw))
+                 weights = full_treat$weight,
+                 covs = select(full_treat,
+                               latino, nh_white, asian,
+                               nh_black, median_income, median_age,
+                               pop_dens, turnout_pre, t16, some_college), h = min(bws$bw))
   ## main model with widest bandwidths
   lb <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
-                weights = full_treat$weight,
-                covs = select(full_treat,
-                              latino, nh_white, asian,
-                              nh_black, median_income, median_age,
-                              pop_dens, turnout_pre, t16, some_college), h = max(bws$bw))
+                 weights = full_treat$weight,
+                 covs = select(full_treat,
+                               latino, nh_white, asian,
+                               nh_black, median_income, median_age,
+                               pop_dens, turnout_pre, t16, some_college), h = max(bws$bw))
   
   ## rdit without balancing
   l <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
@@ -131,7 +131,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   
   ## rdit without OLS adjustments
   l2 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
-                weights = full_treat$weight)
+                 weights = full_treat$weight)
   ##rdit without any adjustments at all
   l3 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id)
   
@@ -139,17 +139,17 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
   ## noninclusion of turnout_pre in the model)
   l4 <- rdrobust(y = full_treat$change_to, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                  weights = full_treat$weight2,
-                covs = select(full_treat,
-                              latino, nh_white, asian,
-                              nh_black, median_income, median_age,
-                              pop_dens, t16, some_college))
-  
-  l4b <- rdrobust(y = full_treat$turnout_pre, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
-                 weights = full_treat$weight2,
                  covs = select(full_treat,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
                                pop_dens, t16, some_college))
+  
+  l4b <- rdrobust(y = full_treat$turnout_pre, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
+                  weights = full_treat$weight2,
+                  covs = select(full_treat,
+                                latino, nh_white, asian,
+                                nh_black, median_income, median_age,
+                                pop_dens, t16, some_college))
   
   ## grab nonparametric bandwidth for alternate specifications
   bw <- rdbwselect(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
@@ -166,20 +166,27 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
                                pop_dens, turnout_pre, t16, some_college), h = bw[["bws"]][1]*2)
-  ## rdit using nonparametric bandwidth on treated side, 30 days on untreated side
+  ## rdit using nonparametric bandwidth on treated side, 60 days on untreated side
   l6 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                  weights = full_treat$weight,
                  covs = select(full_treat,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre, t16, some_college), h = c(bw[["bws"]][1], 30))
-  ## rdit using nonparametric bandwidth on treated side, 60 days on untreated side
+                               pop_dens, turnout_pre, t16, some_college), h = c(bw[["bws"]][1], 60))
+  ## rdit using nonparametric bandwidth on treated side, 90 days on untreated side
   l7 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                  weights = full_treat$weight,
                  covs = select(full_treat,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre, t16, some_college), h = c(bw[["bws"]][1], 60))
+                               pop_dens, turnout_pre, t16, some_college), h = c(bw[["bws"]][1], 90))
+  ## rdit using nonparametric bandwidth on treated side, 180 days on untreated side
+  l7b <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
+                 weights = full_treat$weight,
+                 covs = select(full_treat,
+                               latino, nh_white, asian,
+                               nh_black, median_income, median_age,
+                               pop_dens, turnout_pre, t16, some_college), h = c(bw[["bws"]][1], 180))
   ## keep only the 2016 data
   o16 <- filter(full_treat, year == "2016")
   ## rdit on 2016 data alone
@@ -197,11 +204,12 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                  covs = select(o20,
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
-                               pop_dens, turnout_pre, some_college)))
+                               pop_dens, turnout_pre, some_college))
   
   ## combine results of all these models
   f <- bind_rows(
     tibble(coef = la$coef,
+           n = la$N_h[1] + la$N_h[2],
            se = la$se, 
            pv = la$pv,
            p = threshold,
@@ -209,6 +217,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            u = la[["ci"]][,2],
            l = la[["ci"]][,1]),
     tibble(coef = lb$coef,
+           n = lb$N_h[1] + lb$N_h[2],
            se = lb$se, 
            pv = lb$pv,
            p = threshold,
@@ -216,6 +225,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            u = lb[["ci"]][,2],
            l = lb[["ci"]][,1]),
     tibble(coef = l$coef,
+           n = l$N_h[1] + l$N_h[2],
            se = l$se, 
            pv = l$pv,
            p = threshold,
@@ -223,6 +233,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            u = l[["ci"]][,2],
            l = l[["ci"]][,1]),
     tibble(coef = l2$coef,
+           n = l2$N_h[1] + l2$N_h[2],
            se = l2$se, 
            pv = l2$pv,
            p = threshold,
@@ -230,6 +241,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            u = l2[["ci"]][,2],
            l = l2[["ci"]][,1]),
     tibble(coef = l3$coef,
+           n = l3$N_h[1] + l3$N_h[2],
            se = l3$se, 
            pv = l3$pv,
            p = threshold,
@@ -237,6 +249,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            u = l3[["ci"]][,2],
            l = l3[["ci"]][,1]),
     tibble(coef = l4$coef,
+           n = l4$N_h[1] + l4$N_h[2],
            se = l4$se, 
            pv = l4$pv,
            p = threshold,
@@ -244,6 +257,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            u = l4[["ci"]][,2],
            l = l4[["ci"]][,1]),
     tibble(coef = l4b$coef,
+           n = l4b$N_h[1] + l4b$N_h[2],
            se = l4b$se, 
            pv = l4b$pv,
            p = threshold,
@@ -251,6 +265,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            u = l4b[["ci"]][,2],
            l = l4b[["ci"]][,1]),
     tibble(coef = l5$coef,
+           n = l5$N_h[1] + l5$N_h[2],
            se = l5$se, 
            pv = l5$pv,
            p = threshold,
@@ -258,20 +273,32 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            u = l5[["ci"]][,2],
            l = l5[["ci"]][,1]),
     tibble(coef = l6$coef,
+           n = l6$N_h[1] + l6$N_h[2],
            se = l6$se, 
            pv = l6$pv,
            p = threshold,
-           t = "Nonpara, 30",
+           t = "Nonpara, 60",
+           bwidth = paste0("(", round(l6[["bws"]][1]), ", ", l6[["bws"]][2]),
            u = l6[["ci"]][,2],
            l = l6[["ci"]][,1]),
     tibble(coef = l7$coef,
+           n = l7$N_h[1] + l7$N_h[2],
            se = l7$se, 
            pv = l7$pv,
            p = threshold,
-           t = "Nonpara, 60",
+           t = "Nonpara, 90",
            u = l7[["ci"]][,2],
            l = l7[["ci"]][,1]),
+    tibble(coef = l7b$coef,
+           n = l7b$N_h[1] + l7b$N_h[2],
+           se = l7b$se, 
+           pv = l7b$pv,
+           p = threshold,
+           t = "Nonpara, 180",
+           u = l7b[["ci"]][,2],
+           l = l7b[["ci"]][,1]),
     tibble(coef = l8$coef,
+           n = l8$N_h[1] + l8$N_h[2],
            se = l8$se, 
            pv = l8$pv,
            p = threshold,
@@ -279,6 +306,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            u = l8[["ci"]][,2],
            l = l8[["ci"]][,1]),
     tibble(coef = l9$coef,
+           n = l9$N_h[1] + l9$N_h[2],
            se = l9$se, 
            pv = l9$pv,
            p = threshold,
@@ -337,16 +365,17 @@ saveRDS(different_dists, "temp/first_diff_plot.rds")
 ######################
 #create figure A6
 out <- readRDS("temp/alt_rdds2.rds") %>% 
-  filter(t %in% c('Double Bandwidth','Nonpara, 30','Nonpara, 60')) %>% 
-  mutate(t = ifelse(t == "Nonpara, 30", "30 Days",
-                    ifelse(t == "Nonpara, 60", "60 Days", t)))
+  filter(t %in% c('Double Bandwidth','Nonpara, 60','Nonpara, 90', 'Nonpara, 180')) %>% 
+  mutate(t = ifelse(t == "Nonpara, 60", "60 Days",
+                    ifelse(t == "Nonpara, 90", "90 Days",
+                           ifelse(t == "Nonpara, 180", "180 Days", t))))
 
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
 
 out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
-out$t <- factor(out$t, levels = c('Double Bandwidth','30 Days','60 Days'))
+out$t <- factor(out$t, levels = c('Double Bandwidth','60 Days','90 Days', '180 Days'))
 
 different_dists <- ggplot(out,
                           aes(x = p, y = coef, ymin = l, ymax = u)) +
