@@ -98,11 +98,13 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            pv = l10$pv,
            p = threshold,
            t = "Trending Killings",
+           bwidth = l10[["bws"]][1],
            n = l10$N_h[1] + l10$N_h[2],
            u = l10[["ci"]][,2],
            l = l10[["ci"]][,1]),
     tibble(coef = l11$coef,
            se = l11$se, 
+           bwidth = l11[["bws"]][1],
            pv = l11$pv,
            p = threshold,
            t = "Non-Trending Killings",
@@ -111,7 +113,7 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            l = l11[["ci"]][,1])
   )
 }))
-
+saveRDS(out, "temp/out_run_trend.rds")
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
