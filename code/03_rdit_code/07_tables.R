@@ -8,7 +8,7 @@ primary <- mutate_at(primary, vars(coef, l, u), ~. * -1)
 primary <- primary %>% 
   mutate(cint = paste0("[", round(u, digits = 3), ", ", round(l, digits = 3), "]"),
          across(c(coef, pv, se, n), ~round(., digits = 3)),
-         n = comma(n),
+         n = comma(n, accuracy = 1),
          bw = round(bw))
 
 primary$`Threshold (Miles)` <- min(primary$p)
@@ -35,7 +35,7 @@ out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out <- mutate_at(out, vars(coef, l, u), ~. * -1) %>% 
   mutate(cint = paste0("[", round(u, digits = 3), ", ", round(l, digits = 3), "]"),
          across(c(coef, pv, se, n), ~round(., digits = 3)),
-         n = comma(n))
+         n = comma(n, accuracy = 1))
 out$`Threshold (Miles)` <- min(out$p)
 out$Bandwidth <- out$bwidth[1]
 
@@ -74,7 +74,7 @@ out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out <- mutate_at(out, vars(coef, l, u), ~. * -1) %>% 
   mutate(cint = paste0("[", round(u, digits = 3), ", ", round(l, digits = 3), "]"),
          across(c(coef, pv, se, n), ~round(., digits = 3)),
-         n = comma(n)) %>% 
+         n = comma(n, accuracy = 1)) %>% 
   filter(p <= 1 | p %% 2 == 0)
 
 out$`Threshold (Miles)` <- min(out$p)
@@ -109,13 +109,54 @@ out_w1 <- select(filter(out, bw == "W"), `Threshold (Miles)`,
                 `Confidence\nInterval` = cint,
                 `Std. Error` = se)
 
+########################
+out <- readRDS("temp/victim_data_wide_ebal_model.rds")
+out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
+out <- mutate_at(out, vars(coef, l, u), ~. * -1) %>% 
+  mutate(cint = paste0("[", round(u, digits = 3), ", ", round(l, digits = 3), "]"),
+         across(c(coef, pv, se, n), ~round(., digits = 3)),
+         n = comma(n, accuracy = 1)) %>% 
+  filter(p <= 1 | p %% 2 == 0)
+
+out$`Threshold (Miles)` <- min(out$p)
+out$Bandwidth <- out$bwidth[1]
+
+for(i in c(2:nrow(out))){
+  out$`Threshold (Miles)`[i] <- ifelse(out$p[i] == out$p[i-1], "", out$p[i])
+  out$Bandwidth[i] <- ifelse(out$p[i] == out$p[i-1], "", out$bwidth[i])
+}
+
+out_b2 <- select(filter(out, bw == "B"), `Threshold (Miles)`,
+                 Type = estimate,
+                 `RD Estimate` = coef,
+                 `Effective Sample Size` = n,
+                 `p-value` = pv,
+                 `Confidence\nInterval` = cint,
+                 `Std. Error` = se)
+
+out_h2 <- select(filter(out, bw == "H"), `Threshold (Miles)`,
+                 Type = estimate,
+                 `RD Estimate` = coef,
+                 `Effective Sample Size` = n,
+                 `p-value` = pv,
+                 `Confidence\nInterval` = cint,
+                 `Std. Error` = se)
+
+out_w2 <- select(filter(out, bw == "W"), `Threshold (Miles)`,
+                 Type = estimate,
+                 `RD Estimate` = coef,
+                 `Effective Sample Size` = n,
+                 `p-value` = pv,
+                 `Confidence\nInterval` = cint,
+                 `Std. Error` = se)
+
 ###############
 out <- readRDS("temp/out_run_trend.rds")
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out <- mutate_at(out, vars(coef, l, u), ~. * -1) %>% 
   mutate(cint = paste0("[", round(u, digits = 3), ", ", round(l, digits = 3), "]"),
          across(c(coef, pv, se, n), ~round(., digits = 3)),
-         n = comma(n)) %>% 
+         n = comma(n, accuracy = 1)) %>% 
   filter(p <= 1 | p %% 2 == 0)
 
 out <- mutate(out, ord = ifelse(estimate == "Traditional", 1,
@@ -154,7 +195,7 @@ out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out <- mutate_at(out, vars(coef, l, u), ~. * -1) %>% 
   mutate(cint = paste0("[", round(u, digits = 3), ", ", round(l, digits = 3), "]"),
          across(c(coef, pv, se, n), ~round(., digits = 3)),
-         n = comma(n)) %>% 
+         n = comma(n, accuracy = 1)) %>% 
   filter(p <= 1 | p %% 2 == 0)
 
 out <- mutate(out, ord = ifelse(estimate == "Traditional", 1,
@@ -204,6 +245,14 @@ out_16 <- select(filter(out, t == "Only 2016"), `Threshold (Miles)`,
                  `Std. Error` = se)
 
 out_20 <- select(filter(out, t == "Only 2020"), `Threshold (Miles)`,
+                 Type = estimate,
+                 `RD Estimate` = coef,
+                 `Effective Sample Size` = n,
+                 `p-value` = pv,
+                 `Confidence\nInterval` = cint,
+                 `Std. Error` = se)
+
+out_half <- select(filter(out, t == "Half Bandwidth"), `Threshold (Miles)`,
                  Type = estimate,
                  `RD Estimate` = coef,
                  `Effective Sample Size` = n,
@@ -272,7 +321,7 @@ out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out <- mutate_at(out, vars(coef, l, u), ~. * -1) %>% 
   mutate(cint = paste0("[", round(u, digits = 3), ", ", round(l, digits = 3), "]"),
          across(c(coef, pv, se, n), ~round(., digits = 3)),
-         n = comma(n))
+         n = comma(n, accuracy = 1))
 
 out$Polynomial <- min(out$p)
 
@@ -293,7 +342,7 @@ out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out <- mutate_at(out, vars(coef, l, u), ~. * -1) %>% 
   mutate(cint = paste0("[", round(u, digits = 3), ", ", round(l, digits = 3), "]"),
          across(c(coef, pv, se, n), ~round(., digits = 3)),
-         n = comma(n))
+         n = comma(n, accuracy = 1))
 
 out$`Cut-Point` <- min(out$p)
 
@@ -336,6 +385,14 @@ knitr::kable(out_b1, booktabs = T, caption = "\\label{tab:bvic} RDiT Outcomes, B
   column_spec(c(2, 6), width = "2.25cm") %>% 
   save_kable(paste0("temp/tabs/bvic.tex"))
 
+knitr::kable(out_b2, booktabs = T, caption = "\\label{tab:bvic_m} RDiT Outcomes, Black Victims\\\\(`Unknowns' Modelled with \\texttt{rethnicity})", linesep = "",
+             longtable = T, align=rep('c', ncol(out_b2)), format = "latex") %>%
+  kable_styling(font_size = 10,
+                latex_options = c("HOLD_position", "repeat_header")) %>%
+  column_spec(c(1, 3:5, 7), width = "1.9cm") %>% 
+  column_spec(c(2, 6), width = "2.25cm") %>% 
+  save_kable(paste0("temp/tabs/bvic_m.tex"))
+
 knitr::kable(out_h, booktabs = T, caption = "\\label{tab:hhood} RDiT Outcomes, Latinx Neighborhoods", linesep = "",
              longtable = T, align=rep('c', ncol(out_h)), format = "latex") %>%
   kable_styling(font_size = 10,
@@ -352,6 +409,14 @@ knitr::kable(out_h1, booktabs = T, caption = "\\label{tab:hvic} RDiT Outcomes, L
   column_spec(c(2, 6), width = "2.25cm") %>% 
   save_kable(paste0("temp/tabs/lvic.tex"))
 
+knitr::kable(out_h2, booktabs = T, caption = "\\label{tab:hvic_m} RDiT Outcomes, Latinx Victims\\\\(`Unknowns' Modelled with \\texttt{rethnicity})", linesep = "",
+             longtable = T, align=rep('c', ncol(out_h2)), format = "latex") %>%
+  kable_styling(font_size = 10,
+                latex_options = c("HOLD_position", "repeat_header")) %>%
+  column_spec(c(1, 3:5, 7), width = "1.9cm") %>% 
+  column_spec(c(2, 6), width = "2.25cm") %>% 
+  save_kable(paste0("temp/tabs/lvic_m.tex"))
+
 knitr::kable(out_w, booktabs = T, caption = "\\label{tab:whood} RDiT Outcomes, White Neighborhoods", linesep = "",
              longtable = T, align=rep('c', ncol(out_w)), format = "latex") %>%
   kable_styling(font_size = 10,
@@ -367,6 +432,14 @@ knitr::kable(out_w1, booktabs = T, caption = "\\label{tab:wvic} RDiT Outcomes, W
   column_spec(c(1, 3:5, 7), width = "1.9cm") %>% 
   column_spec(c(2, 6), width = "2.25cm") %>% 
   save_kable(paste0("temp/tabs/wvic.tex"))
+
+knitr::kable(out_w2, booktabs = T, caption = "\\label{tab:wvic_m} RDiT Outcomes, White Victims\\\\(`Unknowns' Modelled with \\texttt{rethnicity})", linesep = "",
+             longtable = T, align=rep('c', ncol(out_w2)), format = "latex", escape = F) %>%
+  kable_styling(font_size = 10,
+                latex_options = c("HOLD_position", "repeat_header")) %>%
+  column_spec(c(1, 3:5, 7), width = "1.9cm") %>% 
+  column_spec(c(2, 6), width = "2.25cm") %>% 
+  save_kable(paste0("temp/tabs/wvic_m.tex"))
 
 knitr::kable(out_t, booktabs = T, caption = "\\label{tab:trend} RDiT Outcomes, Trending Killings", linesep = "",
              longtable = T, align=rep('c', ncol(out_t)), format = "latex") %>%
@@ -423,6 +496,14 @@ knitr::kable(out_20, booktabs = T, caption = "\\label{tab:o20} RDiT Outcomes, 20
   column_spec(c(1, 3:5, 7), width = "1.9cm") %>% 
   column_spec(c(2, 6), width = "2.25cm") %>% 
   save_kable(paste0("temp/tabs/20_tab.tex"))
+
+knitr::kable(out_half, booktabs = T, caption = "\\label{tab:db} RDiT Outcomes, Half Bandwidth", linesep = "",
+             longtable = T, align=rep('c', ncol(out_db)), format = "latex") %>%
+  kable_styling(font_size = 10,
+                latex_options = c("HOLD_position", "repeat_header")) %>%
+  column_spec(c(1, 3:5, 7), width = "1.9cm") %>% 
+  column_spec(c(2, 6), width = "2.25cm") %>% 
+  save_kable(paste0("temp/tabs/half_tab.tex"))
 
 knitr::kable(out_db, booktabs = T, caption = "\\label{tab:db} RDiT Outcomes, Double Bandwidth", linesep = "",
              longtable = T, align=rep('c', ncol(out_db)), format = "latex") %>%
@@ -496,3 +577,24 @@ knitr::kable(out_cp, booktabs = T, caption = "\\label{tab:cp} RDiT Outcomes, Dif
   column_spec(c(2, 6), width = "2.25cm") %>% 
   save_kable(paste0("temp/tabs/cp_tab.tex"))
 
+
+#########################
+
+for(t in c("wvic_m.tex", "bvic_m.tex", "lvic_m.tex")){
+  j <- fread(paste0("temp/tabs/", t), sep = "+", header = F) %>% 
+    mutate(n = row_number())
+  
+  l <- filter(j, grepl("continued", V1)) %>% 
+    select(n) %>% 
+    pull()
+  
+  add <- data.frame(V1 = "\\captionsetup{justification=centering}",
+                    n = (l - 0.01))
+  
+  j <- bind_rows(j, add) %>% 
+    arrange(n) %>% 
+    select(-n) %>% 
+    filter(V1 != "")
+  
+  fwrite(j, paste0("temp/tabs/", t), sep = "+", col.names = F)
+}
