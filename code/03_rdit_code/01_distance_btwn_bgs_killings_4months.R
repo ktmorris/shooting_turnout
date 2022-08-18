@@ -136,14 +136,15 @@ find_closest <- function(bg_data_f, centroids_f, d){
   return(dist)
 }
 
-## this will keep one observation for every block group for every shooting within 20 miles over the 2 year-long periods
+## this will keep one observation for every block group for every shooting within 20 miles
+## over the 2 year-long periods
 ## loop over every state
 for(s in unique(filter(fips_codes, state_code <= 56)$state_code)){
   print(s)
   # if(!(file.exists(paste0("temp/bgs_dists_new_", s, ".rds")))){
     
     ## pull BG shapefiles using tigris package
-    bgs <- block_groups(state = s, class = "sp")
+    bgs <- block_groups(state = s, class = "sp", year = 2019)
     
     centroids <- SpatialPoints(
       data.table(x = as.numeric(bgs@data$INTPTLON), y = as.numeric(bgs@data$INTPTLAT))
@@ -197,7 +198,7 @@ full_set <- readRDS("temp/geocoded_shootings.rds") %>%
 cents <- rbindlist(lapply(unique(filter(fips_codes, state_code <= 56)$state_code), function(s){
   print(s)
 
-  bgs <- block_groups(state = s, class = "sp")
+  bgs <- block_groups(state = s, class = "sp", year = 2019)
   
   return(data.table(GEOID = bgs@data$GEOID,
                     long = as.numeric(bgs@data$INTPTLON),
@@ -237,3 +238,33 @@ l2 <- ds %>%
   filter(dist <= 1) %>% 
   group_by(GEOID) %>% 
   filter(row_number() == 1)
+
+########################
+
+j <- cvap20 %>% 
+  mutate(t = GEOID %in% filter(ds, dist < 10)$GEOID)
+weighted.mean(j$t, j$cvap)
+
+j <- cvap20 %>% 
+  mutate(t = GEOID %in% filter(ds, dist < 3)$GEOID)
+weighted.mean(j$t, j$cvap)
+
+j <- cvap20 %>% 
+  mutate(t = GEOID %in% filter(ds, dist < 1)$GEOID)
+weighted.mean(j$t, j$cvap)
+
+#######################
+
+counties <- counties(class = "sp", year = 2019)
+
+pings  <- SpatialPoints(full_set[,c('longitude','latitude')], proj4string = counties@proj4string)
+full_set$county <- over(pings, counties)$GEOID
+
+cvap20 <- fread("../regular_data/CVAP_2015-2019_ACS_csv_files/County.csv") %>%
+  filter(lntitle == "Total") %>%
+  mutate(GEOID = substring(geoid, 8)) %>%
+  select(GEOID, cvap = cvap_est)
+
+j <- cvap20 %>% 
+  mutate(t = GEOID %in% full_set$county)
+weighted.mean(j$t, j$cvap)
