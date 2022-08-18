@@ -1,6 +1,7 @@
 ### these are all the packages we use throughout the project (there may be extra here)
 library(kableExtra)
 library(readxl)
+library(rethnicity)
 library(SearchTrees)
 library(gstat)
 library(rgeos)
