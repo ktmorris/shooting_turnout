@@ -213,7 +213,7 @@ different_dists <- ggplot(out,
   facet_grid(~estimate) +
   geom_point() +
   geom_errorbar(width = 0) + 
-  theme_bc(base_family = "LM Roman 10") +
+  theme_bc(base_family = "LM Roman 10", base_size = 14) +
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(y = "Local Average Treatment Effect", x = "Radius Around Shooting (Miles)")
 different_dists
@@ -280,7 +280,7 @@ dd
 saveRDS(dd, "temp/diff_polys_primary.rds")
 ########################################
 ## run with different cutpoints for Figure A8
-out <- rbindlist(lapply(c(-7:7), function(x){
+out <- rbindlist(lapply(c(-14:14), function(x){
   l <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = x, cluster = full_treat$id,
                 weights = full_treat$weight,
                 covs = select(full_treat,
@@ -296,6 +296,7 @@ out <- rbindlist(lapply(c(-7:7), function(x){
               l = l[["ci"]][,1])
 }))
 saveRDS(out, "temp/alt_cut_tab_data.rds")
+out <- readRDS("temp/alt_cut_tab_data.rds")
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
@@ -309,9 +310,10 @@ dd <- ggplot(out,
   geom_point(aes(color = z)) +
   theme_bc(base_family = "LM Roman 10") +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "Estimated Effect Size", x = "Cut-Point") +
+  labs(y = "Estimated Effect Size", x = "Cut-Point (Days from Election)") +
   scale_color_manual(values = c("black", "red")) +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        panel.spacing = unit(1, "lines"))
 dd
 saveRDS(dd, "temp/placebos.rds")
 ###########################
