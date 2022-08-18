@@ -1,5 +1,5 @@
 ## pull state shapefiles with tigris
-state_map <- states(cb = T) %>% 
+state_map <- states(cb = T, resolution = "5m") %>% 
   filter(STATEFP <= "56",
          )
 ## shift HI and AK
@@ -36,8 +36,9 @@ h <- as_Spatial(h)
 
 h <- spTransform(h, "+proj=longlat +datum=NAD83 +no_defs")
 
-pre_post$longitude <- h@coords[,1]
-pre_post$latitude <- h@coords[,2]
+pre_post <- bind_cols(h@data, h@coords) %>% 
+  rename(latitude = coords.x2,
+         longitude = coords.x1)
 
 pre_post$pre <- ifelse(pre_post$pre,
                        "Before Election",
@@ -68,7 +69,7 @@ t +
   ggtitle("Police Killing within 6 Months of 2020 Election")
 saveRDS(t, "temp/map.rds")
 
-ggsave("temp/map.png")
+ggsave(plot = t, filename = "temp/map.png")
 ## create figure A1
 t <- ggplot() +
   geom_path(data = filter(state_map,
@@ -93,4 +94,4 @@ t +
   ggtitle("Police Killing within 6 Months of 2016 Election")
 saveRDS(t, "temp/map_16.rds")
 
-ggsave("temp/map_16.png")
+ggsave(plot = t, filename = "temp/map_16.png")
