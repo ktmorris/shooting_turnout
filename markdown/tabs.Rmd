@@ -25,7 +25,7 @@ abstract: |
 \pagenumbering{gobble}
 \pagebreak
 ```{r setup, echo = F, message = F, warning = F}
-knitr::opts_knit$set(root.dir = "..", dev = "cairo_pdf")
+
 library(systemfit)
 library(kevostools)
 library(AER)
@@ -38,6 +38,11 @@ library(extrafont)
 library(kableExtra)
 library(data.table)
 library(stargazer)
+ragg_png = function(..., res = 300) {
+  ragg::agg_png(..., res = res, units = "in")
+}
+knitr::opts_chunk$set(dev = "ragg_png", dpi = 800)
+knitr::opts_knit$set(root.dir = "..", dev = "cairo_pdf")
 ```
 
 ```{r big-tab, echo = F}

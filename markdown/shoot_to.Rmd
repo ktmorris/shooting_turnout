@@ -26,9 +26,8 @@ abstract: |
 \pagebreak
 \doublespacing
 ```{r setup, echo = F, message = F, warning = F}
-knitr::opts_knit$set(root.dir = "..", dev = "cairo_pdf")
 library(systemfit)
-library(kevostools)
+library(BrennanTools)
 library(AER)
 library(sandwich)
 library(lmtest)
@@ -40,6 +39,11 @@ library(kableExtra)
 library(data.table)
 library(stargazer)
 loadfonts()
+ragg_png = function(..., res = 300) {
+  ragg::agg_png(..., res = res, units = "in")
+}
+knitr::opts_chunk$set(dev = "ragg_png", dpi = 800)
+knitr::opts_knit$set(root.dir = "..", dev = "cairo_pdf")
 ```
 \pagenumbering{arabic}
 
@@ -108,6 +112,10 @@ print(readRDS("temp/minn_scatter.rds") + theme(text = element_text(size = 15)))
 
 ```{r paneled-race-effects, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
 print(readRDS("temp/all_plots.rds") + theme(text = element_text(size = 15)))
+```
+
+```{r paneled-race-effects-m, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}
+print(readRDS("temp/all_plots_modelled_race.rds") + theme(text = element_text(size = 15)))
 ```
 
 ```{r first-difference, echo = FALSE, message = F, warning = F, fig.width = 7.5, fig.height = 5, fig.cap = "\\label{fig:map}Police Killing within 2 Months of Election, 2016 and 2020", fig.pos = "h", fig.align = "center"}

@@ -7,8 +7,8 @@
 ]{article}
 \usepackage{amsmath,amssymb}
 \usepackage{lmodern}
-\usepackage{ifxetex,ifluatex}
-\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+\usepackage{iftex}
+\ifPDFTeX
   \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
   \usepackage{textcomp} % provide euro and other symbols
@@ -86,7 +86,7 @@
 \usepackage[normalem]{ulem}
 \usepackage{makecell}
 \usepackage{xcolor}
-\ifluatex
+\ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
 
@@ -99,7 +99,7 @@
 \makeatother
 \subtitle{How Police Killings Can Mobilize Local Communities}
 \author{Kevin Morris\footnote{Brennan Center for Justice, Researcher (\href{mailto:kevin.morris@nyu.edu}{\nolinkurl{kevin.morris@nyu.edu}})} \and Kelsey Shoub\footnote{University of South Carolina, Assistant Professor (\href{mailto:kshoub@mailbox.sc.edu}{\nolinkurl{kshoub@mailbox.sc.edu}})}}
-\date{May 03, 2022}
+\date{May 18, 2022}
 
 \begin{document}
 \maketitle
@@ -115,13 +115,13 @@ TKTKTKTK
 \begin{longtable}[t]{ccccccc}
 \caption{\label{tab:big-tab}\label{tab:big-tab} RDiT Outcomes, Primary Model}\\
 \toprule
-Threshold (Miles) & Type & RD Estimate & Sample Size & p-value & Confidence
+Threshold (Miles) & Type & RD Estimate & Effective Sample Size & p-value & Confidence
 Interval & Std. Error\\
 \midrule
 \endfirsthead
 \caption[]{\label{tab:big-tab}\label{tab:big-tab} RDiT Outcomes, Primary Model \textit{(continued)}}\\
 \toprule
-Threshold (Miles) & Type & RD Estimate & Sample Size & p-value & Confidence
+Threshold (Miles) & Type & RD Estimate & Effective Sample Size & p-value & Confidence
 Interval & Std. Error\\
 \midrule
 \endhead
@@ -129,54 +129,54 @@ Interval & Std. Error\\
 \endfoot
 \bottomrule
 \endlastfoot
-0.25 & Traditional & -0.064 & 308 & 0.006 & {}[-0.109, -0.018] & 0.023\\
- & Bias-Adjusted & -0.069 & 308 & 0.003 & {}[-0.114, -0.024] & 0.023\\
- & Robust & -0.069 & 308 & 0.011 & {}[-0.122, -0.016] & 0.027\\
-0.3 & Traditional & -0.052 & 528 & 0.008 & {}[-0.091, -0.014] & 0.020\\
- & Bias-Adjusted & -0.058 & 528 & 0.003 & {}[-0.097, -0.019] & 0.020\\
- & Robust & -0.058 & 528 & 0.012 & {}[-0.103, -0.013] & 0.023\\
-0.35 & Traditional & -0.035 & 798 & 0.027 & {}[-0.066, -0.004] & 0.016\\
- & Bias-Adjusted & -0.041 & 798 & 0.011 & {}[-0.072, -0.009] & 0.016\\
- & Robust & -0.041 & 798 & 0.027 & {}[-0.077, -0.005] & 0.018\\
-0.4 & Traditional & -0.048 & 702 & 0.009 & {}[-0.085, -0.012] & 0.018\\
- & Bias-Adjusted & -0.055 & 702 & 0.003 & {}[-0.091, -0.019] & 0.018\\
- & Robust & -0.055 & 702 & 0.009 & {}[-0.096, -0.013] & 0.021\\
-0.45 & Traditional & -0.024 & 1,069 & 0.073 & {}[-0.05, 0.002] & 0.013\\
- & Bias-Adjusted & -0.027 & 1,069 & 0.041 & {}[-0.053, -0.001] & 0.013\\
- & Robust & -0.027 & 1,069 & 0.084 & {}[-0.058, 0.004] & 0.016\\
-0.5 & Traditional & -0.020 & 1,363 & 0.051 & {}[-0.039, 00000] & 0.010\\
- & Bias-Adjusted & -0.022 & 1,363 & 0.028 & {}[-0.042, -0.002] & 0.010\\
- & Robust & -0.022 & 1,363 & 0.060 & {}[-0.045, 0.001] & 0.012\\
-0.55 & Traditional & -0.017 & 2,298 & 0.057 & {}[-0.034, 0.001] & 0.009\\
- & Bias-Adjusted & -0.019 & 2,298 & 0.034 & {}[-0.036, -0.001] & 0.009\\
- & Robust & -0.019 & 2,298 & 0.073 & {}[-0.039, 0.002] & 0.010\\
-0.6 & Traditional & -0.016 & 2,556 & 0.073 & {}[-0.033, 0.001] & 0.009\\
- & Bias-Adjusted & -0.018 & 2,556 & 0.039 & {}[-0.036, -0.001] & 0.009\\
- & Robust & -0.018 & 2,556 & 0.078 & {}[-0.039, 0.002] & 0.010\\
-0.65 & Traditional & -0.010 & 2,608 & 0.259 & {}[-0.029, 0.008] & 0.009\\
- & Bias-Adjusted & -0.010 & 2,608 & 0.262 & {}[-0.029, 0.008] & 0.009\\
- & Robust & -0.010 & 2,608 & 0.346 & {}[-0.032, 0.011] & 0.011\\
-0.7 & Traditional & -0.008 & 3,489 & 0.349 & {}[-0.025, 0.009] & 0.009\\
- & Bias-Adjusted & -0.009 & 3,489 & 0.283 & {}[-0.026, 0.008] & 0.009\\
- & Robust & -0.009 & 3,489 & 0.366 & {}[-0.029, 0.011] & 0.010\\
-0.75 & Traditional & -0.010 & 3,926 & 0.274 & {}[-0.027, 0.008] & 0.009\\
- & Bias-Adjusted & -0.012 & 3,926 & 0.191 & {}[-0.029, 0.006] & 0.009\\
- & Robust & -0.012 & 3,926 & 0.271 & {}[-0.033, 0.009] & 0.011\\
-0.8 & Traditional & -0.003 & 4,515 & 0.722 & {}[-0.023, 0.016] & 0.010\\
- & Bias-Adjusted & -0.004 & 4,515 & 0.666 & {}[-0.024, 0.015] & 0.010\\
- & Robust & -0.004 & 4,515 & 0.722 & {}[-0.028, 0.019] & 0.012\\
-0.85 & Traditional & -0.005 & 5,031 & 0.584 & {}[-0.024, 0.014] & 0.010\\
- & Bias-Adjusted & -0.006 & 5,031 & 0.549 & {}[-0.025, 0.013] & 0.010\\
- & Robust & -0.006 & 5,031 & 0.622 & {}[-0.029, 0.017] & 0.012\\
-0.9 & Traditional & -0.005 & 5,604 & 0.650 & {}[-0.026, 0.016] & 0.011\\
- & Bias-Adjusted & -0.005 & 5,604 & 0.644 & {}[-0.026, 0.016] & 0.011\\
- & Robust & -0.005 & 5,604 & 0.706 & {}[-0.031, 0.021] & 0.013\\
-0.95 & Traditional & -0.003 & 6,102 & 0.790 & {}[-0.023, 0.018] & 0.010\\
- & Bias-Adjusted & -0.003 & 6,102 & 0.772 & {}[-0.024, 0.017] & 0.010\\
- & Robust & -0.003 & 6,102 & 0.813 & {}[-0.028, 0.022] & 0.013\\
-1 & Traditional & -0.005 & 6,799 & 0.630 & {}[-0.026, 0.016] & 0.011\\
- & Bias-Adjusted & -0.006 & 6,799 & 0.590 & {}[-0.027, 0.015] & 0.011\\
- & Robust & -0.006 & 6,799 & 0.661 & {}[-0.031, 0.020] & 0.013\\*
+0.25 & Traditional & 0.064 & 308 & 0.006 & {}[0.018, 0.109] & 0.023\\
+ & Bias-Adjusted & 0.069 & 308 & 0.003 & {}[0.024, 0.114] & 0.023\\
+ & Robust & 0.069 & 308 & 0.011 & {}[0.016, 0.122] & 0.027\\
+0.3 & Traditional & 0.052 & 528 & 0.008 & {}[0.014, 0.091] & 0.020\\
+ & Bias-Adjusted & 0.058 & 528 & 0.003 & {}[0.019, 0.097] & 0.020\\
+ & Robust & 0.058 & 528 & 0.012 & {}[0.013, 0.103] & 0.023\\
+0.35 & Traditional & 0.035 & 798 & 0.027 & {}[0.004, 0.066] & 0.016\\
+ & Bias-Adjusted & 0.041 & 798 & 0.011 & {}[0.009, 0.072] & 0.016\\
+ & Robust & 0.041 & 798 & 0.027 & {}[0.005, 0.077] & 0.018\\
+0.4 & Traditional & 0.048 & 702 & 0.009 & {}[0.012, 0.085] & 0.018\\
+ & Bias-Adjusted & 0.055 & 702 & 0.003 & {}[0.019, 0.091] & 0.018\\
+ & Robust & 0.055 & 702 & 0.009 & {}[0.013, 0.096] & 0.021\\
+0.45 & Traditional & 0.024 & 1,069 & 0.073 & {}[-0.002, 0.05] & 0.013\\
+ & Bias-Adjusted & 0.027 & 1,069 & 0.041 & {}[0.001, 0.053] & 0.013\\
+ & Robust & 0.027 & 1,069 & 0.084 & {}[-0.004, 0.058] & 0.016\\
+0.5 & Traditional & 0.020 & 1,363 & 0.051 & {}[0, 0.039] & 0.010\\
+ & Bias-Adjusted & 0.022 & 1,363 & 0.028 & {}[0.002, 0.042] & 0.010\\
+ & Robust & 0.022 & 1,363 & 0.060 & {}[-0.001, 0.045] & 0.012\\
+0.55 & Traditional & 0.017 & 2,298 & 0.057 & {}[-0.001, 0.034] & 0.009\\
+ & Bias-Adjusted & 0.019 & 2,298 & 0.034 & {}[0.001, 0.036] & 0.009\\
+ & Robust & 0.019 & 2,298 & 0.073 & {}[-0.002, 0.039] & 0.010\\
+0.6 & Traditional & 0.016 & 2,556 & 0.073 & {}[-0.001, 0.033] & 0.009\\
+ & Bias-Adjusted & 0.018 & 2,556 & 0.039 & {}[0.001, 0.036] & 0.009\\
+ & Robust & 0.018 & 2,556 & 0.078 & {}[-0.002, 0.039] & 0.010\\
+0.65 & Traditional & 0.010 & 2,608 & 0.259 & {}[-0.008, 0.029] & 0.009\\
+ & Bias-Adjusted & 0.010 & 2,608 & 0.262 & {}[-0.008, 0.029] & 0.009\\
+ & Robust & 0.010 & 2,608 & 0.346 & {}[-0.011, 0.032] & 0.011\\
+0.7 & Traditional & 0.008 & 3,489 & 0.349 & {}[-0.009, 0.025] & 0.009\\
+ & Bias-Adjusted & 0.009 & 3,489 & 0.283 & {}[-0.008, 0.026] & 0.009\\
+ & Robust & 0.009 & 3,489 & 0.366 & {}[-0.011, 0.029] & 0.010\\
+0.75 & Traditional & 0.010 & 3,926 & 0.274 & {}[-0.008, 0.027] & 0.009\\
+ & Bias-Adjusted & 0.012 & 3,926 & 0.191 & {}[-0.006, 0.029] & 0.009\\
+ & Robust & 0.012 & 3,926 & 0.271 & {}[-0.009, 0.033] & 0.011\\
+0.8 & Traditional & 0.003 & 4,515 & 0.722 & {}[-0.016, 0.023] & 0.010\\
+ & Bias-Adjusted & 0.004 & 4,515 & 0.666 & {}[-0.015, 0.024] & 0.010\\
+ & Robust & 0.004 & 4,515 & 0.722 & {}[-0.019, 0.028] & 0.012\\
+0.85 & Traditional & 0.005 & 5,031 & 0.584 & {}[-0.014, 0.024] & 0.010\\
+ & Bias-Adjusted & 0.006 & 5,031 & 0.549 & {}[-0.013, 0.025] & 0.010\\
+ & Robust & 0.006 & 5,031 & 0.622 & {}[-0.017, 0.029] & 0.012\\
+0.9 & Traditional & 0.005 & 5,604 & 0.650 & {}[-0.016, 0.026] & 0.011\\
+ & Bias-Adjusted & 0.005 & 5,604 & 0.644 & {}[-0.016, 0.026] & 0.011\\
+ & Robust & 0.005 & 5,604 & 0.706 & {}[-0.021, 0.031] & 0.013\\
+0.95 & Traditional & 0.003 & 6,102 & 0.790 & {}[-0.018, 0.023] & 0.010\\
+ & Bias-Adjusted & 0.003 & 6,102 & 0.772 & {}[-0.017, 0.024] & 0.010\\
+ & Robust & 0.003 & 6,102 & 0.813 & {}[-0.022, 0.028] & 0.013\\
+1 & Traditional & 0.005 & 6,799 & 0.630 & {}[-0.016, 0.026] & 0.011\\
+ & Bias-Adjusted & 0.006 & 6,799 & 0.590 & {}[-0.015, 0.027] & 0.011\\
+ & Robust & 0.006 & 6,799 & 0.661 & {}[-0.02, 0.031] & 0.013\\*
 \end{longtable}
 \endgroup{}
 
