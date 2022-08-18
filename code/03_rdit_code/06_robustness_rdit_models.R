@@ -166,6 +166,13 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
                                latino, nh_white, asian,
                                nh_black, median_income, median_age,
                                pop_dens, turnout_pre, t16, some_college), h = bw[["bws"]][1]*2)
+  ## rdit using half the nonparametric bandwidth
+  l5b <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
+                 weights = full_treat$weight,
+                 covs = select(full_treat,
+                               latino, nh_white, asian,
+                               nh_black, median_income, median_age,
+                               pop_dens, turnout_pre, t16, some_college), h = bw[["bws"]][1]/2)
   ## rdit using nonparametric bandwidth on treated side, 60 days on untreated side
   l6 <- rdrobust(y = full_treat$turnout, x = full_treat$d2, p = 1, c = 0, cluster = full_treat$id,
                  weights = full_treat$weight,
@@ -272,6 +279,14 @@ out <- rbindlist(lapply(seq(0.25, 1, 0.05), function(threshold){
            t = "Double Bandwidth",
            u = l5[["ci"]][,2],
            l = l5[["ci"]][,1]),
+    tibble(coef = l5b$coef,
+           n = l5b$N_h[1] + l5b$N_h[2],
+           se = l5b$se, 
+           pv = l5b$pv,
+           p = threshold,
+           t = "Half Bandwidth",
+           u = l5b[["ci"]][,2],
+           l = l5b[["ci"]][,1]),
     tibble(coef = l6$coef,
            n = l6$N_h[1] + l6$N_h[2],
            se = l6$se, 
@@ -365,17 +380,17 @@ saveRDS(different_dists, "temp/first_diff_plot.rds")
 ######################
 #create figure A6
 out <- readRDS("temp/alt_rdds2.rds") %>% 
-  filter(t %in% c('Double Bandwidth','Nonpara, 60','Nonpara, 90', 'Nonpara, 180')) %>% 
+  filter(t %in% c('Half Bandwidth', 'Double Bandwidth','Nonpara, 60','Nonpara, 90', 'Nonpara, 180')) %>% 
   mutate(t = ifelse(t == "Nonpara, 60", "60 Days",
                     ifelse(t == "Nonpara, 90", "90 Days",
-                           ifelse(t == "Nonpara, 180", "180 Days", t))))
+                           ifelse(t == "Nonpara, 180", "180 Days", gsub(" ", "\n", t)))))
 
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
 
 out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
-out$t <- factor(out$t, levels = c('Double Bandwidth','60 Days','90 Days', '180 Days'))
+out$t <- factor(out$t, levels = c('Half\nBandwidth', 'Double\nBandwidth','60 Days','90 Days', '180 Days'))
 
 different_dists <- ggplot(out,
                           aes(x = p, y = coef, ymin = l, ymax = u)) +
