@@ -135,7 +135,7 @@ different_dists1 <- ggplot(filter(out, p <= 1, p > 0.31),
   theme_bc(base_family = "LM Roman 10") +
   theme(plot.title = element_text(size = 12)) +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "LATE", x = "Radius Around Shooting (Miles)") +
+  labs(y = "Local Average Treatment Effect", x = "Radius Around Shooting (Miles)") +
   ggtitle("(a) By Block Group Racial Composition")
 different_dists1
 
@@ -149,7 +149,7 @@ different_dists2 <- ggplot(filter(out, p >= 1, bw == "Plurality Black"),
   theme_bc(base_family = "LM Roman 10") +
   geom_hline(yintercept = 0, linetype = "dashed") +
   theme(plot.title = element_text(size = 12)) +
-  labs(y = "LATE", x = "Radius Around Shooting (Miles)") +
+  labs(y = "Local Average Treatment Effect", x = "Radius Around Shooting (Miles)") +
   scale_x_continuous(breaks = seq(2, 20, 2)) +
   ggtitle("(b) Extended Distance,
 Plurality-Black Block Groups")
@@ -308,7 +308,7 @@ different_dists3 <- ggplot(filter(out, p <= 1, p > 0.31),
   theme_bc(base_family = "LM Roman 10") +
   theme(plot.title = element_text(size = 12)) +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "LATE", x = "Radius Around Shooting (Miles)") +
+  labs(y = "Local Average Treatment Effect", x = "Radius Around Shooting (Miles)") +
   ggtitle("(c) By Victim Race")
 different_dists3
 
@@ -322,7 +322,7 @@ different_dists4 <- ggplot(filter(out, p >= 1, bw == "Black Victim",
   theme_bc(base_family = "LM Roman 10") +
   theme(plot.title = element_text(size = 12)) +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "LATE", x = "Radius Around Shooting (Miles)") +
+  labs(y = "Local Average Treatment Effect", x = "Radius Around Shooting (Miles)") +
   scale_x_continuous(breaks = seq(2, 20, 2)) +
   ggtitle("(d) Extended Distance,
 Black Victims")

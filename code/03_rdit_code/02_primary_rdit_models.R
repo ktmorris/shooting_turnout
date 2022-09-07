@@ -255,11 +255,13 @@ out <- rbindlist(lapply(c(1:5), function(x){
               se = l$se,
               n = l$N_h[1] + l$N_h[2],
               pv = l$pv,
+              bwidth = l[["bws"]][1],
               p = x,
               u = l[["ci"]][,2],
               l = l[["ci"]][,1])
 }))
 saveRDS(out, "temp/alt_polys_data.rds")
+out <- readRDS("temp/alt_polys_data.rds")
 out$estimate <- rep(c('Traditional','Bias-Adjusted','Robust'),nrow(out)/3)
 out$estimate <- factor(out$estimate, levels = c('Traditional','Bias-Adjusted','Robust'))
 out <- mutate_at(out, vars(coef, l, u), ~. * -1)
@@ -273,7 +275,7 @@ dd <- ggplot(out,
   geom_point(aes(color = z)) +
   theme_bc(base_family = "LM Roman 10") +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "Estimated Effect Size", x = "Polynomial") +
+  labs(y = "Local Average Treatment Effect", x = "Polynomial") +
   scale_color_manual(values = c("black", "red")) +
   theme(legend.position = "none")
 dd
@@ -290,6 +292,7 @@ out <- rbindlist(lapply(c(-14:14), function(x){
   f <- tibble(coef = l$coef,
               se = l$se,
               n = l$N_h[1] + l$N_h[2],
+              bwidth = l[["bws"]][1],
               pv = l$pv,
               p = x,
               u = l[["ci"]][,2],
@@ -310,7 +313,7 @@ dd <- ggplot(out,
   geom_point(aes(color = z)) +
   theme_bc(base_family = "LM Roman 10") +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "Estimated Effect Size", x = "Cut-Point (Days from Election)") +
+  labs(y = "Local Average Treatment Effect", x = "Cut-Point (Days from Election)") +
   scale_color_manual(values = c("black", "red")) +
   theme(legend.position = "none",
         panel.spacing = unit(1, "lines"))
